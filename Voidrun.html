@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VOIDRUN - 도트 생태 필드북 & 3D 파쿠르</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Tone.js for Retro Chiptune & Procedural Sound Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        /* Retro Pixel Korean & English Fonts */
+        @import url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/DungGeunMo.woff') format('woff');
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        @font-face {
+            font-family: 'DungGeunMo';
+            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/DungGeunMo.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #2d4c2b;
+            font-family: 'DungGeunMo', 'Press Start 2P', monospace;
+            color: #fff8e7;
+        }
+
+        .pixel-box {
+            background-color: #4a3520;
+            border: 4px solid #24170c;
+            box-shadow: inset 3px 3px 0px #705234, inset -3px -3px 0px #2e1f11, 4px 4px 0px rgba(0, 0, 0, 0.55);
+            border-radius: 0px !important;
+        }
+
+        .pixel-parchment {
+            background-color: #f4e6c8;
+            color: #2e1f11;
+            border: 4px solid #3a2614;
+            box-shadow: inset 4px 4px 0px #fff7e6, inset -4px -4px 0px #d4be94, 6px 6px 0px rgba(0, 0, 0, 0.65);
+            border-radius: 0px !important;
+        }
+
+        .pixel-parchment-dark {
+            background-color: #e5d1a8;
+            color: #2e1f11;
+            border: 3px solid #593b1f;
+            box-shadow: inset 2px 2px 0px #f7ebd2, inset -2px -2px 0px #bfa574;
+        }
+
+        .pixel-green-badge {
+            background-color: #3f7a38;
+            color: #f0fdf4;
+            border: 2px solid #1b3b18;
+            box-shadow: inset 2px 2px 0px #5ea355, inset -2px -2px 0px #275222;
+        }
+
+        .pixel-amber-badge {
+            background-color: #d97706;
+            color: #fffbeb;
+            border: 2px solid #451a03;
+            box-shadow: inset 2px 2px 0px #fbbf24, inset -2px -2px 0px #92400e;
+        }
+
+        .pixel-btn {
+            background-color: #558b2f;
+            color: #ffffff;
+            border: 3px solid #1b330c;
+            box-shadow: inset 3px 3px 0px #7cb342, inset -3px -3px 0px #33691e, 3px 3px 0px rgba(0, 0, 0, 0.5);
+            border-radius: 0px !important;
+        }
+
+        .pixel-btn-amber {
+            background-color: #d97706;
+            border: 3px solid #3b1802;
+            box-shadow: inset 3px 3px 0px #f59e0b, inset -3px -3px 0px #92400e, 3px 3px 0px rgba(0, 0, 0, 0.5);
+        }
+
+        .fieldbook-card {
+            background-color: #efe0c1;
+            border: 3px solid #593b1f;
+            box-shadow: inset 2px 2px 0px #fff8eb, inset -2px -2px 0px #cbb382, 3px 3px 0px rgba(46, 31, 17, 0.25);
+        }
+
+        .btn-touch {
+            background-color: #4a3520;
+            border: 3px solid #1f140a;
+            box-shadow: inset 3px 3px 0px #785736, inset -3px -3px 0px #2b1d10, 3px 3px 0px rgba(0, 0, 0, 0.6);
+            color: #fef3c7;
+            border-radius: 0px !important;
+        }
+
+        #joystick-zone {
+            width: 124px;
+            height: 124px;
+            background-color: rgba(46, 31, 17, 0.65);
+            border: 4px solid #24170c;
+            box-shadow: inset 3px 3px 0px rgba(255, 240, 200, 0.15), 4px 4px 0px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        #joystick-knob {
+            width: 46px;
+            height: 46px;
+            background-color: #d97706;
+            border: 3px solid #24170c;
+            box-shadow: inset 3px 3px 0px #fbbf24, inset -3px -3px 0px #92400e;
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            background: #fef08a;
+            border: 2px solid #24170c;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .retro-frame {
+            position: absolute;
+            inset: 0;
+            box-shadow: inset 0 0 0 6px #24170c, inset 0 0 40px rgba(20, 35, 15, 0.35);
+            pointer-events: none;
+            z-index: 6;
+        }
+
+        .character-card {
+            min-height: 112px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            padding: 8px 5px;
+        }
+        .character-preview { width: 58px; height: 66px; image-rendering: pixelated; }
+        .character-name { color: #3b2414; font-size: 12px; font-weight: bold; }
+        .character-card.selected-character { border-color: #9a5b18 !important; background: #fff1cf !important; }
+    </style>
+</head>
+<body class="select-none overflow-hidden">
+
+    <div id="game-container" class="absolute inset-0 w-full h-full"></div>
+    <div class="retro-frame"></div>
+    <div class="crosshair"></div>
+
+    <!-- HUD Overlay -->
+    <div id="hud" class="absolute inset-0 pointer-events-none flex flex-col justify-between p-3 md:p-4 z-20">
+        <div class="flex justify-between items-start w-full gap-2">
+            <div class="flex flex-col gap-2 max-w-[250px] md:max-w-[310px]">
+                <div class="pixel-box p-2.5 md:p-3 flex flex-col gap-1.5 pointer-events-auto">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[11px] px-1.5 py-0.5 pixel-green-badge font-bold" id="hud-stage-badge">FOREST 01</span>
+                            <h1 class="text-base md:text-lg font-bold text-amber-300 tracking-wide">VOIDRUN</h1>
+                        </div>
+                        <span id="checkpoint-text" class="text-xs text-lime-300 font-bold">CP 0/7</span>
+                    </div>
+                    <div class="text-xs text-amber-100 flex items-center justify-between">
+                        <span id="player-nickname-display" class="font-bold text-yellow-200 truncate max-w-[130px]">YVES-SCOUT</span>
+                        <span class="text-[11px] text-amber-300"><i class="fa-solid fa-bolt mr-1"></i>스태미나</span>
+                    </div>
+                    <div class="w-full bg-[#1f140a] h-3 p-0.5 border-2 border-[#120b05]">
+                        <div id="stamina-bar" class="h-full bg-lime-500 w-full transition-all duration-75"></div>
+                    </div>
+                </div>
+
+                <div class="pixel-parchment p-2.5 md:p-3 pointer-events-auto">
+                    <div class="flex items-center justify-between mb-1 border-b-2 border-[#bfa574] pb-1">
+                        <span class="text-[11px] font-bold text-[#3f7a38]"><i class="fa-solid fa-compass mr-1"></i>채집 탐사 퀘스트</span>
+                        <span id="quest-progress-badge" class="text-[10px] pixel-amber-badge px-1.5 py-0.5 font-bold">탐사중</span>
+                    </div>
+                    <p id="quest-title" class="text-xs md:text-sm font-bold text-[#24170c] leading-snug">가을 단풍 숲길 돌파하기</p>
+                    <p id="quest-desc" class="text-[11px] text-[#593b1f] mt-0.5 leading-tight">흔들리는 나무 발판을 건너 체크포인트 1에 도달하세요.</p>
+                </div>
+            </div>
+
+            <div class="flex flex-col items-end gap-2 pointer-events-auto">
+                <div class="flex items-center gap-2">
+                    <button id="btn-open-fieldbook" class="pixel-parchment px-3 py-2 md:px-4 md:py-2.5 flex items-center gap-2 relative">
+                        <i class="fa-solid fa-book-open text-[#3f7a38] text-base md:text-lg"></i>
+                        <div class="text-left">
+                            <div class="text-[10px] text-[#6d4c2b] font-bold leading-none">FIELD BOOK</div>
+                            <div class="text-xs md:text-sm font-bold text-[#24170c] mt-0.5">도감 <span id="token-display" class="text-[#b45309]">0</span> / 10</div>
+                        </div>
+                        <span id="fieldbook-dot" class="hidden absolute -top-2 -right-2 px-1.5 py-0.5 bg-red-600 text-white text-[9px] border-2 border-[#24170c] font-bold">NEW!</span>
+                    </button>
+                    <button id="btn-pixel-toggle" class="pixel-box w-10 h-10 flex items-center justify-center text-lime-300"><i class="fa-solid fa-border-all"></i></button>
+                    <button id="btn-sound-toggle" class="pixel-box w-10 h-10 flex items-center justify-center text-amber-300"><i id="sound-icon" class="fa-solid fa-volume-high"></i></button>
+                    <button id="btn-quick-restart" class="pixel-box w-10 h-10 flex items-center justify-center text-orange-300"><i class="fa-solid fa-rotate-right"></i></button>
+                </div>
+
+                <div class="pixel-box px-3 py-2 flex items-center gap-3">
+                    <div class="text-right">
+                        <div class="text-[10px] text-amber-300/80">SPEED</div>
+                        <div class="text-xs md:text-sm font-bold text-lime-300"><span id="speed-display">0</span> <span class="text-[10px]">km/h</span></div>
+                    </div>
+                    <div class="h-6 w-[2px] bg-[#24170c]"></div>
+                    <div class="text-right">
+                        <div class="text-[10px] text-amber-300/80">TIME</div>
+                        <div id="timer-display" class="text-base md:text-xl font-bold text-yellow-300 leading-none">00:00.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="toast-message" class="self-center pixel-parchment px-4 py-2 text-xs md:text-sm font-bold transform translate-y-16 opacity-0 transition-all duration-200 pointer-events-none text-center flex items-center gap-2">
+            <i class="fa-solid fa-leaf text-[#3f7a38]"></i>
+            <span id="toast-text">채집 준비 완료</span>
+        </div>
+
+        <div id="touch-controls" class="w-full flex justify-between items-end pointer-events-none pb-1 px-1">
+            <div class="pointer-events-auto" id="joystick-zone">
+                <div id="joystick-knob"></div>
+            </div>
+            <div class="hidden lg:flex items-center gap-2 pixel-box px-4 py-1.5 text-xs text-amber-100">
+                <span><b class="text-yellow-300">WASD</b> 이동</span> •
+                <span><b class="text-yellow-300">Space</b> 점프</span> •
+                <span><b class="text-yellow-300">Shift</b> 질주</span> •
+                <span><b class="text-yellow-300">E</b> 대시</span> •
+                <span><b class="text-yellow-300">C</b> 활공토글</span> •
+                <span><b class="text-yellow-300">마우스 드래그</b> 시점 변환</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 pointer-events-auto items-center">
+                <button id="btn-dash" class="btn-touch w-12 h-12 flex flex-col items-center justify-center font-bold text-[11px]"><i class="fa-solid fa-bolt text-yellow-300"></i>대시</button>
+                <button id="btn-sprint" class="btn-touch w-12 h-12 flex flex-col items-center justify-center font-bold text-[11px]"><i class="fa-solid fa-person-running text-lime-300"></i>질주</button>
+                <button id="btn-jump" class="btn-touch w-16 h-16 flex flex-col items-center justify-center text-white font-bold text-sm !bg-[#3f7a38] row-span-2"><i class="fa-solid fa-angles-up text-yellow-200"></i>점프</button>
+                <button id="btn-slide" class="btn-touch w-12 h-12 flex flex-col items-center justify-center font-bold text-[11px]"><i class="fa-solid fa-person-sliding text-amber-300"></i>활공</button>
+                <button id="btn-dive" class="btn-touch w-12 h-12 flex flex-col items-center justify-center font-bold text-[11px]"><i class="fa-solid fa-arrow-down text-red-400"></i>급강하</button>
+            </div>
+        </div>
+    </div>
+
+    <button id="btn-dev-mode" class="fixed bottom-3 right-3 z-30 px-2.5 py-1 pixel-box text-amber-200 font-bold text-[10px]"><i class="fa-solid fa-terminal"></i> DEV</button>
+
+    <!-- Fieldbook Modal -->
+    <div id="fieldbook-modal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50">
+        <div class="pixel-parchment max-w-2xl w-full overflow-hidden flex flex-col max-h-[86vh]">
+            <div class="p-4 bg-[#4a3520] text-[#fff8e7] border-b-4 border-[#24170c] flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 pixel-green-badge flex items-center justify-center text-xl"><i class="fa-solid fa-bug"></i></div>
+                    <div>
+                        <h2 class="text-lg md:text-xl font-bold text-yellow-300">곤충 생태 & 생체모방 필드북</h2>
+                        <p class="text-xs text-amber-100">숲과 협곡에서 채집한 곤충 표본 기록입니다.</p>
+                    </div>
+                </div>
+                <button id="btn-close-fieldbook" class="pixel-btn-amber w-9 h-9 text-white font-bold"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="px-4 py-2.5 bg-[#e5d1a8] border-b-2 border-[#bfa574] flex items-center justify-between text-xs font-bold">
+                <span class="text-[#4a3520]">표본 채집 달성도</span>
+                <div class="flex items-center gap-3">
+                    <div class="w-32 md:w-48 bg-[#4a3520] h-3 p-0.5 border-2 border-[#24170c]">
+                        <div id="fieldbook-progress-bar" class="h-full bg-[#3f7a38] w-0"></div>
+                    </div>
+                    <span id="fieldbook-count-text">0 / 10 종</span>
+                </div>
+            </div>
+            <div id="fieldbook-grid" class="p-4 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-3 bg-[#f4e6c8]"></div>
+        </div>
+    </div>
+
+    <!-- Menu Modal -->
+    <div id="menu-modal" class="absolute inset-0 bg-black/70 flex items-center justify-center p-4 z-40 overflow-y-auto">
+        <div class="pixel-parchment max-w-md w-full p-5 md:p-7 text-center relative">
+            <div id="modal-content-start">
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 pixel-green-badge font-bold text-xs mb-3">PIXEL INSECT & BIOMIMICRY QUEST</div>
+                <h1 class="text-3xl md:text-4xl font-bold text-[#24170c] mb-1">VOIDRUN</h1>
+                <p class="text-xs text-[#593b1f] mb-4">공중 섬과 도트 숲을 달리며 10종의 표본을 채집하세요!</p>
+                <div class="pixel-parchment-dark p-3 my-3 text-left">
+                    <h3 class="text-xs font-bold text-[#3f7a38] mb-2">주인공 선택</h3>
+                    <div id="character-selector" class="grid grid-cols-2 gap-2">
+                        <button type="button" data-character="jumper" class="character-card selected-character border-2 border-[#9a5b18] bg-[#fff1cf]">
+                            <svg class="character-preview" viewBox="0 0 64 80"><rect x="18" y="27" width="28" height="26" fill="#1d4ed8"/><rect x="13" y="30" width="8" height="20" fill="#dc2626"/><rect x="43" y="30" width="8" height="20" fill="#dc2626"/><rect x="20" y="10" width="24" height="22" fill="#f2c99b"/><rect x="16" y="5" width="32" height="9" fill="#dc2626"/><rect x="10" y="12" width="44" height="6" fill="#dc2626"/></svg>
+                            <span class="character-name">루키 점퍼</span>
+                        </button>
+                        <button type="button" data-character="ranger" class="character-card border-2 border-[#bfa574] bg-[#fff8eb]">
+                            <svg class="character-preview" viewBox="0 0 64 80"><path d="M15 30 L49 30 L55 61 L9 61Z" fill="#14532d"/><rect x="18" y="27" width="28" height="27" fill="#166534"/><rect x="19" y="12" width="26" height="24" fill="#f2c99b"/></svg>
+                            <span class="character-name">숲의 정찰자</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="pixel-parchment-dark p-4 my-3 text-left space-y-3">
+                    <h3 class="text-xs font-bold text-[#3f7a38] border-b-2 border-[#bfa574] pb-1">탐사대원 설정</h3>
+                    <div>
+                        <label class="text-xs text-[#4a3520] font-bold block mb-1">탐사대원 이름</label>
+                        <input type="text" id="custom-nickname" value="YVES-SCOUT" maxlength="12" class="w-full bg-[#fff8eb] border-2 border-[#4a3520] px-3 py-1.5 text-sm font-bold">
+                    </div>
+                </div>
+                <button id="btn-start-game" class="w-full py-3.5 pixel-btn font-bold text-base mt-2"><i class="fa-solid fa-play mr-2"></i>필드 탐사 출발!</button>
+            </div>
+
+            <div id="modal-content-die" class="hidden">
+                <div class="text-4xl text-red-700 mb-2"><i class="fa-solid fa-skull-crossbones"></i></div>
+                <h2 class="text-2xl font-bold text-red-800 mb-2">함정에 부딪혀 사망했습니다!</h2>
+                <p class="text-xs text-[#593b1f] mb-5">빨간색 함정이나 위험 구역에 닿았습니다. 마지막 체크포인트에서 다시 시작합니다.</p>
+                <button id="btn-restart-game" class="w-full py-3 pixel-btn-amber text-white font-bold text-base"><i class="fa-solid fa-rotate-left mr-2"></i>캠프 지점으로 복귀</button>
+            </div>
+
+            <div id="modal-content-clear" class="hidden">
+                <div class="text-4xl text-[#3f7a38] mb-2"><i class="fa-solid fa-trophy"></i></div>
+                <h2 class="text-2xl font-bold text-[#24170c] mb-1">FIELD QUEST COMPLETE!</h2>
+                <p class="text-xs text-[#593b1f] mb-4">모든 구역을 돌파했습니다!</p>
+                <div class="pixel-parchment-dark p-4 mb-4 text-sm space-y-2 text-left">
+                    <div class="flex justify-between"><span>최종 탐사 기록:</span> <b id="final-time" class="text-[#b45309]">00:00.00</b></div>
+                    <div class="flex justify-between"><span>표본 채집:</span> <b id="final-tokens" class="text-[#3f7a38]">0 / 10 종</b></div>
+                </div>
+                <button id="btn-retry-clear" class="w-full py-3 pixel-btn font-bold text-sm">다시 탐사하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dev Modal -->
+    <div id="dev-modal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50">
+        <div class="pixel-box max-w-sm w-full p-5 text-amber-100">
+            <div class="flex justify-between items-center mb-4 border-b-2 border-[#24170c] pb-2">
+                <h3 class="text-base font-bold text-yellow-300">개발자 콘솔</h3>
+                <button id="btn-close-dev" class="text-amber-200"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div id="dev-auth-section" class="space-y-3">
+                <input type="password" id="dev-password-input" placeholder="암호 (yves8767)" class="w-full bg-[#1f140a] border-2 border-[#705234] px-3 py-2 text-sm text-yellow-200">
+                <button id="btn-dev-login" class="w-full py-2 pixel-btn text-xs font-bold">인증 승인</button>
+            </div>
+            <div id="dev-teleport-section" class="hidden space-y-2 mt-2">
+                <button data-cp="0" class="btn-tp w-full py-2 pixel-btn text-xs">CP 0 (시작)</button>
+                <button data-cp="goal" class="btn-tp w-full py-2 pixel-btn-amber text-xs font-bold">GOAL (포털)</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function createPixelTexture(width, height, drawFn) {
+            const canvas = document.createElement('canvas');
+            canvas.width = width; canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = false;
+            drawFn(ctx, width, height);
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.magFilter = THREE.NearestFilter;
+            tex.minFilter = THREE.NearestFilter;
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            return tex;
+        }
+
+        const PIXEL_TEXTURES = {};
+        function initPixelTextures() {
+            PIXEL_TEXTURES.grass = createPixelTexture(16, 16, (ctx, w, h) => {
+                ctx.fillStyle = '#4e8c37'; ctx.fillRect(0, 0, w, h);
+            });
+            PIXEL_TEXTURES.wood = createPixelTexture(16, 16, (ctx, w, h) => {
+                ctx.fillStyle = '#7c4d25'; ctx.fillRect(0, 0, w, h);
+            });
+            PIXEL_TEXTURES.stone = createPixelTexture(16, 16, (ctx, w, h) => {
+                ctx.fillStyle = '#6b7280'; ctx.fillRect(0, 0, w, h);
+            });
+            PIXEL_TEXTURES.autumnWall = createPixelTexture(16, 16, (ctx, w, h) => {
+                ctx.fillStyle = '#c2410c'; ctx.fillRect(0, 0, w, h);
+            });
+            PIXEL_TEXTURES.gold = createPixelTexture(16, 16, (ctx, w, h) => {
+                ctx.fillStyle = '#d97706'; ctx.fillRect(0, 0, w, h);
+            });
+            PIXEL_TEXTURES.crumble = createPixelTexture(16, 16, (ctx, w, h) => {
+                ctx.fillStyle = '#b91c1c'; ctx.fillRect(0, 0, w, h);
+            });
+            PIXEL_TEXTURES.crystal = createPixelTexture(16, 16, (ctx, w, h) => {
+                ctx.fillStyle = '#0284c7'; ctx.fillRect(0, 0, w, h);
+            });
+            PIXEL_TEXTURES.dirt = createPixelTexture(16, 16, (ctx, w, h) => {
+                ctx.fillStyle = '#6b4226'; ctx.fillRect(0, 0, w, h);
+            });
+            PIXEL_TEXTURES.honeycomb = createPixelTexture(16, 16, (ctx, w, h) => {
+                ctx.fillStyle = '#f59e0b'; ctx.fillRect(0, 0, w, h);
+            });
+            /* 빨간색 함정 텍스처 추가 */
+            PIXEL_TEXTURES.trap = createPixelTexture(16, 16, (ctx, w, h) => {
+                ctx.fillStyle = '#991b1b'; ctx.fillRect(0, 0, w, h);
+                ctx.fillStyle = '#ef4444'; ctx.fillRect(2, 2, 12, 12);
+                ctx.fillStyle = '#fef08a'; ctx.fillRect(6, 6, 4, 4);
+            });
+        }
+
+        const FIELDBOOK_DATA = [
+            { id: 0, code: "BUG-01", name: "단풍잎벌레", category: "생체모방", location: "초입", desc: "나노 셀룰로오스 복합 소재", sprite: ["......GG...."], palette: { G: '#9a3412' } }
+        ];
+
+        const QUEST_STAGES = [
+            { title: "1단계: 가을 단풍 숲길 돌파", desc: "빨간색 함정을 피해 체크포인트에 도달하세요." }
+        ];
+
+        let soundEnabled = true, synth = null;
+        function initAudio() {
+            if (!synth && typeof Tone !== 'undefined') {
+                synth = new Tone.PolySynth(Tone.Synth).toDestination();
+                synth.volume.value = -14;
+            }
+        }
+        function playSfx(type) {
+            if (!soundEnabled || !synth) return;
+            try {
+                if (Tone.context.state !== 'running') Tone.start();
+                if (type === 'jump') synth.triggerAttackRelease("C5", "32n");
+                else if (type === 'die') synth.triggerAttackRelease("G2", "8n");
+            } catch (e) {}
+        }
+
+        const CONFIG = {
+            gravity: 28, walkSpeed: 7.8, sprintSpeed: 13.8, jumpForce: 11.6, dashForce: 18.5, maxStamina: 100
+        };
+
+        let scene, camera, renderer, clock;
+        let isGameRunning = false, isLowResPixel = true, gameTime = 0, bestTime = null;
+        let unlockedSamples = new Set();
+
+        const playerCustom = { nickname: 'YVES-SCOUT', character: 'jumper', suitColor: 0x1d4ed8, capColor: 0xdc2626 };
+        const player = {
+            mesh: null,
+            position: new THREE.Vector3(0, 5, 0),
+            velocity: new THREE.Vector3(),
+            rotationY: 0, pitch: 0,
+            isGrounded: false, canDoubleJump: true,
+            stamina: CONFIG.maxStamina, tokensCollected: 0,
+            currentCheckpoint: new THREE.Vector3(0, 5, 0), currentCpIndex: 0,
+            isGliding: false
+        };
+
+        let cameraOffset = new THREE.Vector3(0, 1.7, 4.0);
+        let isMouseDown = false, mouseLastX = 0, mouseLastY = 0;
+        const keys = {};
+        const touchInput = { x: 0, y: 0, isActive: false };
+
+        const platforms = [], traps = [], tokens = [], checkpoints = [];
+
+        function initScene() {
+            initPixelTextures();
+            const container = document.getElementById('game-container');
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x38bdf8);
+            scene.fog = new THREE.FogExp2(0x93c5fd, 0.0055);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: false });
+            applyPixelResolution();
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            clock = new THREE.Clock();
+            scene.add(new THREE.AmbientLight(0xfffbeb, 0.95));
+
+            const sun = new THREE.DirectionalLight(0xfef08a, 1.4);
+            sun.position.set(60, 95, 45);
+            scene.add(sun);
+
+            createPlayerMesh();
+            buildLevel();
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        function applyPixelResolution() {
+            const scale = isLowResPixel ? 0.42 : 0.85;
+            renderer.setSize(Math.floor(window.innerWidth * scale), Math.floor(window.innerHeight * scale), false);
+        }
+
+        function createPlayerMesh() {
+            if (player.mesh) scene.remove(player.mesh);
+            const group = new THREE.Group();
+            const mat = (col) => new THREE.MeshLambertMaterial({ color: col });
+            const addBox = (w, h, d, col, x, y, z) => {
+                const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(col));
+                m.position.set(x, y, z); group.add(m); return m;
+            };
+            addBox(0.68, 0.82, 0.46, playerCustom.suitColor, 0, 0.84, 0);
+            addBox(0.56, 0.56, 0.56, 0xf2c99b, 0, 1.53, 0);
+            player.mesh = group;
+            scene.add(player.mesh);
+        }
+
+        function makeTiledMat(baseTex, w, d) {
+            const tex = baseTex.clone();
+            tex.needsUpdate = true;
+            tex.repeat.set(Math.max(1, Math.round(w / 2)), Math.max(1, Math.round(d / 2)));
+            return new THREE.MeshLambertMaterial({ map: tex });
+        }
+
+        function buildLevel() {
+            function addPlatform(x, y, z, w, h, d, texType = 'stone', isTrap = false) {
+                const geo = new THREE.BoxGeometry(w, h, d);
+                const mat = makeTiledMat(PIXEL_TEXTURES[isTrap ? 'trap' : texType], w, d);
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.set(x, y, z);
+                scene.add(mesh);
+                if (isTrap) {
+                    mesh.userData = { isTrap: true };
+                    traps.push(mesh);
+                } else {
+                    platforms.push(mesh);
+                }
+                return mesh;
+            }
+
+            function addCheckpoint(x, y, z, index) {
+                const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 3, 1), new THREE.MeshLambertMaterial({ color: 0xf59e0b }));
+                mesh.position.set(x, y, z);
+                scene.add(mesh);
+                checkpoints.push({ position: new THREE.Vector3(x, y + 1, z), index, activated: false });
+            }
+
+            // 구역 생성
+            addPlatform(0, 0, 0, 12, 2, 12, 'grass');
+            addCheckpoint(0, 1, 0, 0);
+
+            // 빨간색 사망 함정 발판 추가!
+            addPlatform(0, 0, -10, 4, 1, 4, 'stone', true); 
+            addPlatform(0, 0, -18, 6, 2, 6, 'grass');
+            addCheckpoint(0, 1, -18, 1);
+
+            // 최종 포털 (도달 시 클리어)
+            const portal = new THREE.Mesh(new THREE.BoxGeometry(3, 3, 3), new THREE.MeshBasicMaterial({ color: 0x38bdf8 }));
+            portal.position.set(0, 3, -30);
+            portal.userData = { isGoal: true };
+            scene.add(portal);
+            platforms.push(portal);
+        }
+
+        function setupControls() {
+            window.addEventListener('keydown', (e) => {
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    if (!e.repeat) executeJump();
+                }
+                keys[e.code] = true;
+                if (e.code === 'KeyR') restartGameCompletely();
+            });
+            window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+            const container = document.getElementById('game-container');
+
+            /* ==========================================
+               마우스 드래그에 따른 자연스러운 시점 변환 로직
+            ========================================== */
+            container.addEventListener('mousedown', (e) => {
+                if (!isGameRunning) return;
+                isMouseDown = true;
+                mouseLastX = e.clientX;
+                mouseLastY = e.clientY;
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (isMouseDown && isGameRunning) {
+                    const dx = e.clientX - mouseLastX;
+                    const dy = e.clientY - mouseLastY;
+                    player.rotationY -= dx * 0.004; // 좌우 시점 회전
+                    player.pitch -= dy * 0.003;     // 상하 시점 회전
+                    player.pitch = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, player.pitch)); // 각도 제한
+                    mouseLastX = e.clientX;
+                    mouseLastY = e.clientY;
+                }
+            });
+
+            window.addEventListener('mouseup', () => { isMouseDown = false; });
+
+            // 모바일 터치 드래그 지원
+            let touchLookId = null, lastX = 0, lastY = 0;
+            container.addEventListener('touchstart', (e) => {
+                if (!isGameRunning) return;
+                const t = e.changedTouches[0];
+                if (t.clientX > window.innerWidth / 2) {
+                    touchLookId = t.identifier;
+                    lastX = t.clientX; lastY = t.clientY;
+                }
+            }, { passive: true });
+
+            container.addEventListener('touchmove', (e) => {
+                if (touchLookId === null || !isGameRunning) return;
+                for (let i = 0; i < e.touches.length; i++) {
+                    const t = e.touches[i];
+                    if (t.identifier === touchLookId) {
+                        const dx = t.clientX - lastX;
+                        const dy = t.clientY - lastY;
+                        player.rotationY -= dx * 0.005;
+                        player.pitch -= dy * 0.004;
+                        player.pitch = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, player.pitch));
+                        lastX = t.clientX; lastY = t.clientY;
+                    }
+                }
+            }, { passive: true });
+
+            container.addEventListener('touchend', () => { touchLookId = null; });
+
+            document.getElementById('btn-jump').addEventListener('click', executeJump);
+            document.getElementById('btn-start-game').addEventListener('click', () => { initAudio(); startGame(); });
+            document.getElementById('btn-restart-game').addEventListener('click', respawnPlayer);
+            document.getElementById('btn-quick-restart').addEventListener('click', restartGameCompletely);
+            document.getElementById('btn-retry-clear').addEventListener('click', startGame);
+        }
+
+        function executeJump() {
+            if (!isGameRunning) return;
+            if (player.isGrounded) {
+                player.velocity.y = CONFIG.jumpForce;
+                player.isGrounded = false;
+                playSfx('jump');
+            }
+        }
+
+        function updatePhysics(delta) {
+            if (!isGameRunning) return;
+
+            gameTime += delta;
+            let moveX = 0, moveZ = 0;
+            if (keys['KeyW'] || keys['ArrowUp']) moveZ -= 1;
+            if (keys['KeyS'] || keys['ArrowDown']) moveZ += 1;
+            if (keys['KeyA'] || keys['ArrowLeft']) moveX -= 1;
+            if (keys['KeyD'] || keys['ArrowRight']) moveX += 1;
+
+            const moveDir = new THREE.Vector3(moveX, 0, moveZ);
+            if (moveDir.lengthSq() > 0) moveDir.normalize();
+            moveDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), player.rotationY);
+
+            const speed = CONFIG.walkSpeed;
+            player.velocity.x = moveDir.x * speed;
+            player.velocity.z = moveDir.z * speed;
+
+            if (!player.isGrounded) {
+                player.velocity.y -= CONFIG.gravity * delta;
+            }
+
+            player.position.addScaledVector(player.velocity, delta);
+
+            checkCollisions();
+
+            if (player.position.y < -20) onPlayerDie();
+
+            if (player.mesh) {
+                player.mesh.position.copy(player.position);
+                player.mesh.rotation.y = player.rotationY;
+            }
+
+            // 카메라 위치 계산 (시점 변환 반영)
+            const targetCamPos = player.position.clone().add(
+                cameraOffset.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), player.rotationY)
+            );
+            camera.position.lerp(targetCamPos, 0.22);
+            camera.lookAt(player.position.clone().add(new THREE.Vector3(0, 1.25, 0)));
+        }
+
+        function checkCollisions() {
+            player.isGrounded = false;
+            const playerBox = new THREE.Box3().setFromCenterAndSize(
+                player.position.clone().add(new THREE.Vector3(0, 0.9, 0)),
+                new THREE.Vector3(0.8, 1.8, 0.8)
+            );
+
+            /* ==========================================
+               빨간색 함정(트랩) 충돌 시 즉사 판정 로직
+            ========================================== */
+            for (let trap of traps) {
+                const trapBox = new THREE.Box3().setFromObject(trap);
+                if (playerBox.intersectsBox(trapBox)) {
+                    onPlayerDie(); // 빨간색 함정에 닿으면 사망!
+                    return;
+                }
+            }
+
+            for (let plat of platforms) {
+                const platBox = new THREE.Box3().setFromObject(plat);
+                if (playerBox.intersectsBox(platBox)) {
+                    if (plat.userData.isGoal) {
+                        onGameClear();
+                        return;
+                    }
+                    if (player.velocity.y <= 0 && player.position.y >= platBox.max.y - 0.5) {
+                        player.position.y = platBox.max.y;
+                        player.velocity.y = 0;
+                        player.isGrounded = true;
+                    }
+                }
+            }
+
+            for (let cp of checkpoints) {
+                if (!cp.activated && player.position.distanceTo(cp.position) < 2.5) {
+                    cp.activated = true;
+                    player.currentCheckpoint.copy(cp.position);
+                    showToast(`체크포인트 ${cp.index} 저장!`);
+                }
+            }
+        }
+
+        function startGame() {
+            restartGameCompletely();
+        }
+
+        function restartGameCompletely() {
+            gameTime = 0;
+            player.currentCheckpoint.set(0, 5, 0);
+            respawnPlayer();
+        }
+
+        function respawnPlayer() {
+            player.position.copy(player.currentCheckpoint);
+            player.velocity.set(0, 0, 0);
+            document.getElementById('menu-modal').classList.add('hidden');
+            document.getElementById('modal-content-start').classList.add('hidden');
+            document.getElementById('modal-content-die').classList.add('hidden');
+            document.getElementById('modal-content-clear').classList.add('hidden');
+            isGameRunning = true;
+        }
+
+        function onPlayerDie() {
+            if (!isGameRunning) return;
+            isGameRunning = false;
+            playSfx('die');
+            document.getElementById('menu-modal').classList.remove('hidden');
+            document.getElementById('modal-content-die').classList.remove('hidden');
+        }
+
+        function onGameClear() {
+            if (!isGameRunning) return;
+            isGameRunning = false;
+            document.getElementById('final-time').innerText = "00:15.00";
+            document.getElementById('menu-modal').classList.remove('hidden');
+            document.getElementById('modal-content-clear').classList.remove('hidden');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast-message');
+            document.getElementById('toast-text').innerText = msg;
+            toast.classList.remove('opacity-0', 'translate-y-16');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-16');
+            }, 2000);
+        }
+
+        function updateHUD() {
+            document.getElementById('timer-display').innerText = gameTime.toFixed(2);
+            document.getElementById('stamina-bar').style.width = `${(player.stamina / CONFIG.maxStamina) * 100}%`;
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            applyPixelResolution();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = Math.min(clock.getDelta(), 0.1);
+            if (isGameRunning) {
+                updatePhysics(delta);
+                updateHUD();
+            }
+            renderer.render(scene, camera);
+        }
+
+        window.onload = () => {
+            initScene();
+            setupControls();
+            animate();
+        };
+    </script>
+</body>
+</html>
