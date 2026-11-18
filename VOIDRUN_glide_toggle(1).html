@@ -1,0 +1,3074 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VOIDRUN - 도트 생태 필드북 & 3D 파쿠르</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Tone.js for Retro Chiptune & Procedural Sound Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        /* Retro Pixel Korean & English Fonts */
+        @import url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/DungGeunMo.woff') format('woff');
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        @font-face {
+            font-family: 'DungGeunMo';
+            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/DungGeunMo.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #2d4c2b;
+            font-family: 'DungGeunMo', 'Press Start 2P', monospace;
+            color: #fff8e7;
+        }
+
+        .font-pixel-en {
+            font-family: 'Press Start 2P', 'DungGeunMo', monospace;
+        }
+
+        /* ==========================================
+           PIXEL ART & FIELDBOOK PARCHMENT UI STYLES
+        ========================================== */
+        .pixel-box {
+            background-color: #4a3520;
+            border: 4px solid #24170c;
+            box-shadow:
+                inset 3px 3px 0px #705234,
+                inset -3px -3px 0px #2e1f11,
+                4px 4px 0px rgba(0, 0, 0, 0.55);
+            border-radius: 0px !important;
+        }
+
+        .pixel-parchment {
+            background-color: #f4e6c8;
+            color: #2e1f11;
+            border: 4px solid #3a2614;
+            box-shadow:
+                inset 4px 4px 0px #fff7e6,
+                inset -4px -4px 0px #d4be94,
+                6px 6px 0px rgba(0, 0, 0, 0.65);
+            border-radius: 0px !important;
+        }
+
+        .pixel-parchment-dark {
+            background-color: #e5d1a8;
+            color: #2e1f11;
+            border: 3px solid #593b1f;
+            box-shadow:
+                inset 2px 2px 0px #f7ebd2,
+                inset -2px -2px 0px #bfa574;
+        }
+
+        .pixel-green-badge {
+            background-color: #3f7a38;
+            color: #f0fdf4;
+            border: 2px solid #1b3b18;
+            box-shadow: inset 2px 2px 0px #5ea355, inset -2px -2px 0px #275222;
+        }
+
+        .pixel-amber-badge {
+            background-color: #d97706;
+            color: #fffbeb;
+            border: 2px solid #451a03;
+            box-shadow: inset 2px 2px 0px #fbbf24, inset -2px -2px 0px #92400e;
+        }
+
+        .pixel-btn {
+            background-color: #558b2f;
+            color: #ffffff;
+            border: 3px solid #1b330c;
+            box-shadow:
+                inset 3px 3px 0px #7cb342,
+                inset -3px -3px 0px #33691e,
+                3px 3px 0px rgba(0, 0, 0, 0.5);
+            transition: transform 0.05s steps(2);
+            border-radius: 0px !important;
+        }
+
+        .pixel-btn:hover {
+            background-color: #689f38;
+        }
+
+        .pixel-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow:
+                inset 2px 2px 0px #33691e,
+                1px 1px 0px rgba(0, 0, 0, 0.5);
+        }
+
+        .pixel-btn-amber {
+            background-color: #d97706;
+            border: 3px solid #3b1802;
+            box-shadow:
+                inset 3px 3px 0px #f59e0b,
+                inset -3px -3px 0px #92400e,
+                3px 3px 0px rgba(0, 0, 0, 0.5);
+        }
+
+        .pixel-btn-amber:hover {
+            background-color: #e68209;
+        }
+
+        /* Fieldbook Card */
+        .fieldbook-card {
+            background-color: #efe0c1;
+            border: 3px solid #593b1f;
+            box-shadow: inset 2px 2px 0px #fff8eb, inset -2px -2px 0px #cbb382, 3px 3px 0px rgba(46, 31, 17, 0.25);
+            transition: transform 0.1s steps(2);
+        }
+
+        .fieldbook-card.unlocked:hover {
+            transform: translate(-1px, -2px);
+            border-color: #3f7a38;
+            background-color: #f8eed9;
+        }
+
+        /* Touch Controls - Retro D-Pad & Gameboy Buttons */
+        .btn-touch {
+            background-color: #4a3520;
+            border: 3px solid #1f140a;
+            box-shadow:
+                inset 3px 3px 0px #785736,
+                inset -3px -3px 0px #2b1d10,
+                3px 3px 0px rgba(0, 0, 0, 0.6);
+            color: #fef3c7;
+            border-radius: 0px !important;
+        }
+
+        .btn-touch:active {
+            transform: translate(2px, 2px);
+            background-color: #d97706;
+            box-shadow: inset 2px 2px 0px #78350f;
+        }
+
+        #joystick-zone {
+            width: 124px;
+            height: 124px;
+            background-color: rgba(46, 31, 17, 0.65);
+            border: 4px solid #24170c;
+            box-shadow: inset 3px 3px 0px rgba(255, 240, 200, 0.15), 4px 4px 0px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: none;
+            position: relative;
+        }
+
+        #joystick-knob {
+            width: 46px;
+            height: 46px;
+            background-color: #d97706;
+            border: 3px solid #24170c;
+            box-shadow: inset 3px 3px 0px #fbbf24, inset -3px -3px 0px #92400e;
+            position: absolute;
+            transform: translate(0, 0);
+            pointer-events: none;
+        }
+
+        /* Pixel Crosshair */
+        .crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            background: #fef08a;
+            border: 2px solid #24170c;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Subtle Retro Scanline & Pixel Border Frame */
+        .retro-frame {
+            position: absolute;
+            inset: 0;
+            box-shadow: inset 0 0 0 6px #24170c, inset 0 0 40px rgba(20, 35, 15, 0.35);
+            pointer-events: none;
+            z-index: 6;
+        }
+
+        /* Custom Scrollbar for Fieldbook */
+        .custom-scroll::-webkit-scrollbar {
+            width: 10px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #cbb382;
+            border-left: 2px solid #593b1f;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #6d4c2b;
+            border: 2px solid #2e1f11;
+        }
+
+        @keyframes pixelBlink {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+        }
+        .new-entry-badge {
+            animation: pixelBlink 0.8s steps(2) infinite;
+        }
+
+        /* Canvas Crisp Pixelation */
+        #game-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        .character-card { min-height: 112px; border-radius: 2px; transition: transform .12s ease, background .12s ease, border-color .12s ease; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; padding:8px 5px; }
+        .character-card:active { transform: translateY(1px) scale(.99); }
+        .character-card:focus-visible { outline: 3px solid #d97706; outline-offset: 2px; }
+        .character-preview { width:58px; height:66px; display:block; image-rendering:pixelated; filter: drop-shadow(2px 3px 0 rgba(46,31,17,.22)); }
+        .character-name { color:#3b2414; font-size:12px; line-height:1.2; font-weight:bold; }
+        .character-card.selected-character { border-color:#9a5b18 !important; background:#fff1cf !important; box-shadow: inset 0 0 0 2px #e5b65f, 2px 2px 0 rgba(46,31,17,.18); }
+    </style>
+</head>
+<body class="select-none overflow-hidden">
+
+    <!-- 3D Pixel-Art Canvas Container -->
+    <div id="game-container" class="absolute inset-0 w-full h-full"></div>
+    <div class="retro-frame"></div>
+    <div class="crosshair"></div>
+
+    <!-- HUD Overlay -->
+    <div id="hud" class="absolute inset-0 pointer-events-none flex flex-col justify-between p-3 md:p-4 z-20">
+        <!-- Top Header -->
+        <div class="flex justify-between items-start w-full gap-2">
+            <!-- Left: Runner Status & Active Quest Tracker -->
+            <div class="flex flex-col gap-2 max-w-[250px] md:max-w-[310px]">
+                <!-- Explorer Status Card -->
+                <div class="pixel-box p-2.5 md:p-3 flex flex-col gap-1.5 pointer-events-auto">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[11px] px-1.5 py-0.5 pixel-green-badge font-bold" id="hud-stage-badge">FOREST 01</span>
+                            <h1 class="text-base md:text-lg font-bold text-amber-300 tracking-wide">VOIDRUN</h1>
+                        </div>
+                        <span id="checkpoint-text" class="text-xs text-lime-300 font-bold">CP 0/7</span>
+                    </div>
+                    <div class="text-xs text-amber-100 flex items-center justify-between">
+                        <span id="player-nickname-display" class="font-bold text-yellow-200 truncate max-w-[130px]">YVES-SCOUT</span>
+                        <span class="text-[11px] text-amber-300"><i class="fa-solid fa-bolt mr-1"></i>스태미나</span>
+                    </div>
+                    <!-- Pixel Stamina Bar -->
+                    <div class="w-full bg-[#1f140a] h-3 p-0.5 border-2 border-[#120b05]">
+                        <div id="stamina-bar" class="h-full bg-lime-500 w-full transition-all duration-75" style="box-shadow: inset 0 2px 0 #a3e635;"></div>
+                    </div>
+                </div>
+
+                <!-- Field Quest Tracker (Parchment Note Style) -->
+                <div class="pixel-parchment p-2.5 md:p-3 pointer-events-auto">
+                    <div class="flex items-center justify-between mb-1 border-b-2 border-[#bfa574] pb-1">
+                        <span class="text-[11px] font-bold text-[#3f7a38]">
+                            <i class="fa-solid fa-compass mr-1"></i>채집 탐사 퀘스트
+                        </span>
+                        <span id="quest-progress-badge" class="text-[10px] pixel-amber-badge px-1.5 py-0.5 font-bold">탐사중</span>
+                    </div>
+                    <p id="quest-title" class="text-xs md:text-sm font-bold text-[#24170c] leading-snug">가을 단풍 숲길 돌파하기</p>
+                    <p id="quest-desc" class="text-[11px] text-[#593b1f] mt-0.5 leading-tight">흔들리는 나무 발판을 건너 체크포인트 1에 도달하세요.</p>
+                </div>
+            </div>
+
+            <!-- Right: Timer, Fieldbook Button & Quick Controls -->
+            <div class="flex flex-col items-end gap-2 pointer-events-auto">
+                <div class="flex items-center gap-2">
+                    <!-- Fieldbook (Insect & Biomimicry Codex) Open Button -->
+                    <button id="btn-open-fieldbook" class="pixel-parchment px-3 py-2 md:px-4 md:py-2.5 flex items-center gap-2 hover:bg-[#fff6e0] active:translate-y-0.5 transition-all relative">
+                        <i class="fa-solid fa-book-open text-[#3f7a38] text-base md:text-lg"></i>
+                        <div class="text-left">
+                            <div class="text-[10px] text-[#6d4c2b] font-bold leading-none">FIELD BOOK</div>
+                            <div class="text-xs md:text-sm font-bold text-[#24170c] mt-0.5">
+                                도감 <span id="token-display" class="text-[#b45309]">0</span> / 10
+                            </div>
+                        </div>
+                        <span id="fieldbook-dot" class="hidden absolute -top-2 -right-2 px-1.5 py-0.5 bg-red-600 text-white text-[9px] border-2 border-[#24170c] font-bold">NEW!</span>
+                    </button>
+
+                    <!-- Pixel Resolution / Retro Filter Toggle -->
+                    <button id="btn-pixel-toggle" title="도트 선명도 전환 (고/저해상도)" class="pixel-box w-10 h-10 md:w-11 md:h-11 flex items-center justify-center text-lime-300 hover:text-white active:translate-y-0.5">
+                        <i class="fa-solid fa-border-all text-base"></i>
+                    </button>
+
+                    <!-- Sound Toggle -->
+                    <button id="btn-sound-toggle" title="칩튠 효과음 켜기/끄기" class="pixel-box w-10 h-10 md:w-11 md:h-11 flex items-center justify-center text-amber-300 hover:text-white active:translate-y-0.5">
+                        <i id="sound-icon" class="fa-solid fa-volume-high text-base"></i>
+                    </button>
+
+                    <!-- Quick Restart Button -->
+                    <button id="btn-quick-restart" title="탐사 처음부터 재시작 (R)" class="pixel-box w-10 h-10 md:w-11 md:h-11 flex items-center justify-center text-orange-300 hover:text-white active:translate-y-0.5">
+                        <i class="fa-solid fa-rotate-right text-base"></i>
+                    </button>
+                </div>
+
+                <!-- Timer & Speedometer -->
+                <div class="pixel-box px-3 py-2 md:px-4 md:py-2.5 flex items-center gap-3">
+                    <div class="text-right">
+                        <div class="text-[10px] text-amber-300/80">SPEED</div>
+                        <div class="text-xs md:text-sm font-bold text-lime-300"><span id="speed-display">0</span> <span class="text-[10px]">km/h</span></div>
+                    </div>
+                    <div class="h-6 w-[2px] bg-[#24170c]"></div>
+                    <div class="text-right">
+                        <div class="text-[10px] text-amber-300/80">TIME</div>
+                        <div id="timer-display" class="text-base md:text-xl font-bold text-yellow-300 leading-none">00:00.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Notification Toast -->
+        <div id="toast-message" class="self-center pixel-parchment px-4 py-2 text-xs md:text-sm font-bold transform translate-y-16 opacity-0 transition-all duration-200 pointer-events-none text-center flex items-center gap-2">
+            <i class="fa-solid fa-leaf text-[#3f7a38]"></i>
+            <span id="toast-text">채집 준비 완료</span>
+        </div>
+
+        <!-- Bottom Touch Controls -->
+        <div id="touch-controls" class="w-full flex justify-between items-end pointer-events-none pb-1 px-1">
+            <!-- Left: Virtual Joystick -->
+            <div class="pointer-events-auto" id="joystick-zone">
+                <div id="joystick-knob"></div>
+            </div>
+
+            <!-- Desktop Controls Hint -->
+            <div class="hidden lg:flex items-center gap-2 pixel-box px-4 py-1.5 text-xs text-amber-100">
+                <span><b class="text-yellow-300">WASD</b> 이동</span> •
+                <span><b class="text-yellow-300">Space</b> 점프/벽타기</span> •
+                <span><b class="text-yellow-300">Shift</b> 질주</span> •
+                <span><b class="text-yellow-300">E</b> 대시</span> •
+                <span><b class="text-yellow-300">C</b> 슬라이드/급강하</span> •
+                <span><b class="text-yellow-300">B</b> 필드북</span>
+            </div>
+
+            <!-- Right: Action Buttons -->
+            <div class="grid grid-cols-3 gap-2 pointer-events-auto md:gap-2.5 items-center">
+                <button id="btn-dash" class="btn-touch w-12 h-12 md:w-14 md:h-14 flex flex-col items-center justify-center font-bold text-[11px]">
+                    <i class="fa-solid fa-bolt text-sm mb-0.5 text-yellow-300"></i>
+                    대시
+                </button>
+                <button id="btn-sprint" class="btn-touch w-12 h-12 md:w-14 md:h-14 flex flex-col items-center justify-center font-bold text-[11px]">
+                    <i class="fa-solid fa-person-running text-sm mb-0.5 text-lime-300"></i>
+                    질주
+                </button>
+                <button id="btn-jump" class="btn-touch w-16 h-16 md:w-20 md:h-20 flex flex-col items-center justify-center text-white font-bold text-sm !bg-[#3f7a38] row-span-2">
+                    <i class="fa-solid fa-angles-up text-lg mb-0.5 text-yellow-200"></i>
+                    점프
+                </button>
+
+                <button id="btn-slide" class="btn-touch w-12 h-12 md:w-14 md:h-14 flex flex-col items-center justify-center font-bold text-[11px]">
+                    <i class="fa-solid fa-person-sliding text-sm mb-0.5 text-amber-300"></i>
+                    슬라이드
+                </button>
+                <button id="btn-dive" class="btn-touch w-12 h-12 md:w-14 md:h-14 flex flex-col items-center justify-center font-bold text-[11px]">
+                    <i class="fa-solid fa-arrow-down text-sm mb-0.5 text-red-400"></i>
+                    급강하
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Developer Mode Floating Button -->
+    <button id="btn-dev-mode" class="fixed bottom-3 right-3 z-30 px-2.5 py-1 pixel-box text-amber-200 hover:text-white font-bold text-[10px] flex items-center gap-1 opacity-75 hover:opacity-100">
+        <i class="fa-solid fa-terminal"></i> DEV
+    </button>
+
+    <!-- ==========================================
+         FIELDBOOK (PIXEL ART INSECT & BIOMIMICRY CODEX) MODAL
+    ========================================== -->
+    <div id="fieldbook-modal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50">
+        <div class="pixel-parchment max-w-2xl w-full overflow-hidden flex flex-col max-h-[86vh]">
+            <!-- Fieldbook Header -->
+            <div class="p-4 bg-[#4a3520] text-[#fff8e7] border-b-4 border-[#24170c] flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 pixel-green-badge flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-bug"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg md:text-xl font-bold text-yellow-300 tracking-wide">곤충 생태 & 생체모방 필드북</h2>
+                        <p class="text-xs text-amber-100/90">숲과 협곡에서 채집한 곤충 표본과 자연 모사 공학 기록입니다.</p>
+                    </div>
+                </div>
+                <button id="btn-close-fieldbook" class="pixel-btn-amber w-9 h-9 text-white flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Progress Summary Bar -->
+            <div class="px-4 py-2.5 bg-[#e5d1a8] border-b-2 border-[#bfa574] flex items-center justify-between text-xs font-bold">
+                <span class="text-[#4a3520]"><i class="fa-solid fa-magnifying-glass mr-1"></i>표본 채집 달성도</span>
+                <div class="flex items-center gap-3">
+                    <div class="w-32 md:w-48 bg-[#4a3520] h-3 p-0.5 border-2 border-[#24170c]">
+                        <div id="fieldbook-progress-bar" class="h-full bg-[#3f7a38] transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                    <span id="fieldbook-count-text" class="text-[#24170c]">0 / 10 종</span>
+                </div>
+            </div>
+
+            <!-- Fieldbook Grid Content -->
+            <div id="fieldbook-grid" class="p-4 overflow-y-auto custom-scroll grid grid-cols-1 md:grid-cols-2 gap-3 bg-[#f4e6c8]">
+                <!-- Cards injected dynamically via JS with Pixel Sprite Icons -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         START / GAME OVER / CLEAR MODAL
+    ========================================== -->
+    <div id="menu-modal" class="absolute inset-0 bg-black/70 flex items-center justify-center p-4 z-40 overflow-y-auto">
+        <div class="pixel-parchment max-w-md w-full p-5 md:p-7 text-center relative">
+            <!-- Start Setup View -->
+            <div id="modal-content-start">
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 pixel-green-badge font-bold text-xs mb-3">
+                    <i class="fa-solid fa-seedling"></i> PIXEL INSECT & BIOMIMICRY QUEST
+                </div>
+                <h1 class="text-3xl md:text-4xl font-bold text-[#24170c] tracking-wider mb-1" style="text-shadow: 2px 2px 0px #d4be94;">
+                    VOIDRUN
+                </h1>
+                <p class="text-xs text-[#593b1f] mb-4">공중 섬과 도트 숲을 달리며 10종의 곤충·생체모방 표본을 필드북에 채집하세요!</p>
+
+                <!-- Character Select -->
+                <div class="pixel-parchment-dark p-3 my-3 text-left">
+                    <div class="mb-2">
+                        <h3 class="text-xs font-bold text-[#3f7a38]"><i class="fa-solid fa-users mr-1"></i> 주인공 선택</h3>
+                    </div>
+                    <div id="character-selector" class="grid grid-cols-2 gap-2">
+                        <button type="button" data-character="jumper" aria-label="루키 점퍼 선택" aria-pressed="true" class="character-card selected-character border-2 border-[#9a5b18] bg-[#fff1cf]">
+                            <svg class="character-preview" viewBox="0 0 64 80" role="img" aria-label="빨간 모자와 파란 멜빵옷 캐릭터"><rect x="18" y="27" width="28" height="26" fill="#1d4ed8"/><rect x="13" y="30" width="8" height="20" fill="#dc2626"/><rect x="43" y="30" width="8" height="20" fill="#dc2626"/><rect x="20" y="10" width="24" height="22" fill="#f2c99b"/><rect x="16" y="5" width="32" height="9" fill="#dc2626"/><rect x="10" y="12" width="44" height="6" fill="#dc2626"/><rect x="24" y="19" width="4" height="5" fill="#24170c"/><rect x="37" y="19" width="4" height="5" fill="#24170c"/><rect x="20" y="48" width="10" height="18" fill="#3f3028"/><rect x="34" y="48" width="10" height="18" fill="#3f3028"/><rect x="17" y="63" width="15" height="7" fill="#2b211b"/><rect x="32" y="63" width="15" height="7" fill="#2b211b"/><rect x="23" y="35" width="5" height="5" fill="#facc15"/><rect x="36" y="35" width="5" height="5" fill="#facc15"/></svg>
+                            <span class="character-name">루키 점퍼</span>
+                        </button>
+                        <button type="button" data-character="ranger" aria-label="숲의 정찰자 선택" aria-pressed="false" class="character-card border-2 border-[#bfa574] bg-[#fff8eb]">
+                            <svg class="character-preview" viewBox="0 0 64 80" role="img" aria-label="초록 후드와 망토 캐릭터"><path d="M15 30 L49 30 L55 61 L9 61Z" fill="#14532d"/><rect x="18" y="27" width="28" height="27" fill="#166534"/><rect x="19" y="12" width="26" height="24" fill="#f2c99b"/><path d="M14 21 L18 6 L46 6 L50 21 L44 29 L20 29Z" fill="#14532d"/><rect x="24" y="20" width="4" height="5" fill="#24170c"/><rect x="37" y="20" width="4" height="5" fill="#24170c"/><rect x="21" y="50" width="9" height="17" fill="#3f3028"/><rect x="34" y="50" width="9" height="17" fill="#3f3028"/><rect x="18" y="64" width="14" height="6" fill="#2b211b"/><rect x="32" y="64" width="14" height="6" fill="#2b211b"/><rect x="28" y="33" width="8" height="4" fill="#fde68a"/></svg>
+                            <span class="character-name">숲의 정찰자</span>
+                        </button>
+                        <button type="button" data-character="engineer" aria-label="황금 엔지니어 선택" aria-pressed="false" class="character-card border-2 border-[#bfa574] bg-[#fff8eb]">
+                            <svg class="character-preview" viewBox="0 0 64 80" role="img" aria-label="노란 안전모와 주황 작업복 캐릭터"><rect x="17" y="28" width="30" height="26" fill="#f59e0b"/><rect x="20" y="11" width="24" height="23" fill="#f2c99b"/><rect x="13" y="11" width="38" height="8" fill="#374151"/><rect x="19" y="5" width="26" height="9" fill="#fbbf24"/><rect x="29" y="3" width="7" height="5" fill="#38bdf8"/><rect x="24" y="20" width="4" height="5" fill="#24170c"/><rect x="37" y="20" width="4" height="5" fill="#24170c"/><rect x="20" y="50" width="10" height="17" fill="#3f3028"/><rect x="34" y="50" width="10" height="17" fill="#3f3028"/><rect x="17" y="64" width="15" height="6" fill="#2b211b"/><rect x="32" y="64" width="15" height="6" fill="#2b211b"/><rect x="44" y="39" width="8" height="13" fill="#78350f"/><rect x="25" y="35" width="14" height="4" fill="#38bdf8"/></svg>
+                            <span class="character-name">황금 엔지니어</span>
+                        </button>
+                        <button type="button" data-character="mage" aria-label="밤하늘 마도사 선택" aria-pressed="false" class="character-card border-2 border-[#bfa574] bg-[#fff8eb]">
+                            <svg class="character-preview" viewBox="0 0 64 80" role="img" aria-label="보라색 뾰족 모자와 망토 캐릭터"><path d="M13 31 L51 31 L57 64 L7 64Z" fill="#312e81"/><rect x="18" y="28" width="28" height="25" fill="#6d28d9"/><rect x="20" y="12" width="24" height="23" fill="#f2c99b"/><path d="M11 18 L29 1 L51 18 L47 23 L15 23Z" fill="#312e81"/><rect x="23" y="20" width="4" height="5" fill="#24170c"/><rect x="37" y="20" width="4" height="5" fill="#24170c"/><rect x="20" y="50" width="10" height="17" fill="#3f3028"/><rect x="34" y="50" width="10" height="17" fill="#3f3028"/><rect x="17" y="64" width="15" height="6" fill="#2b211b"/><rect x="32" y="64" width="15" height="6" fill="#2b211b"/><rect x="37" y="35" width="6" height="6" fill="#f0abfc"/><rect x="28" y="7" width="5" height="5" fill="#f0abfc"/></svg>
+                            <span class="character-name">밤하늘 마도사</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Customization Panel -->
+                <div class="pixel-parchment-dark p-4 my-3 text-left space-y-3">
+                    <h3 class="text-xs font-bold text-[#3f7a38] border-b-2 border-[#bfa574] pb-1">
+                        <i class="fa-solid fa-hat-cowboy mr-1"></i> 필드 탐사대원 설정
+                    </h3>
+                    
+                    <div>
+                        <label class="text-xs text-[#4a3520] font-bold block mb-1">탐사대원 이름</label>
+                        <input type="text" id="custom-nickname" value="YVES-SCOUT" maxlength="12" class="w-full bg-[#fff8eb] border-2 border-[#4a3520] px-3 py-1.5 text-sm text-[#24170c] focus:outline-none font-bold">
+                    </div>
+
+                    <div class="flex justify-between items-center gap-4">
+                        <div>
+                            <label class="text-xs text-[#4a3520] font-bold block mb-1.5">탐사복 컬러</label>
+                            <div class="flex gap-2" id="color-selector">
+                                <button data-color="0x4d7c0f" class="w-7 h-7 bg-[#4d7c0f] border-2 border-[#24170c]"></button>
+                                <button data-color="0xd97706" class="w-7 h-7 bg-[#d97706] border-2 border-[#24170c]"></button>
+                                <button data-color="0xb91c1c" class="w-7 h-7 bg-[#b91c1c] border-2 border-[#24170c]"></button>
+                                <button data-color="0x1d4ed8" class="w-7 h-7 bg-[#1d4ed8] border-2 border-[#24170c] ring-2 ring-amber-500 scale-110"></button>
+                                <button data-color="0x7e22ce" class="w-7 h-7 bg-[#7e22ce] border-2 border-[#24170c]"></button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-xs text-[#4a3520] font-bold block mb-1.5">고글 렌즈</label>
+                            <div class="flex gap-2" id="visor-selector">
+                                <button data-visor="0xfacc15" class="w-7 h-7 bg-[#facc15] border-2 border-[#24170c] ring-2 ring-amber-600 scale-110"></button>
+                                <button data-visor="0x38bdf8" class="w-7 h-7 bg-[#38bdf8] border-2 border-[#24170c]"></button>
+                                <button data-visor="0xf472b6" class="w-7 h-7 bg-[#f472b6] border-2 border-[#24170c]"></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="btn-start-game" class="w-full py-3.5 pixel-btn font-bold text-base md:text-lg mt-2">
+                    <i class="fa-solid fa-play mr-2"></i>필드 탐사 출발!
+                </button>
+            </div>
+
+            <!-- Game Over View -->
+            <div id="modal-content-die" class="hidden">
+                <div class="text-4xl text-red-700 mb-2"><i class="fa-solid fa-skull-crossbones"></i></div>
+                <h2 class="text-2xl font-bold text-red-800 mb-2">탐사 경로 이탈!</h2>
+                <p class="text-xs text-[#593b1f] mb-5">절벽 아래로 떨어지거나 위험 함정에 닿았습니다. 마지막 캠프에서 다시 출발합니다.</p>
+                <button id="btn-restart-game" class="w-full py-3 pixel-btn-amber text-white font-bold text-base">
+                    <i class="fa-solid fa-rotate-left mr-2"></i>캠프 지점으로 복귀
+                </button>
+            </div>
+
+            <!-- Game Clear View -->
+            <div id="modal-content-clear" class="hidden">
+                <div class="text-4xl text-[#3f7a38] mb-2"><i class="fa-solid fa-trophy"></i></div>
+                <h2 class="text-2xl font-bold text-[#24170c] mb-1">FIELD QUEST COMPLETE!</h2>
+                <p class="text-xs text-[#593b1f] mb-4">모든 구역을 돌파하고 성소 포털에 도착했습니다!</p>
+
+                <div class="pixel-parchment-dark p-4 mb-4 text-sm space-y-2 text-left">
+                    <div class="flex justify-between"><span>최종 탐사 기록:</span> <b id="final-time" class="text-[#b45309]">00:00.00</b></div>
+                    <div class="flex justify-between"><span>필드북 표본 채집:</span> <b id="final-tokens" class="text-[#3f7a38]">0 / 10 종</b></div>
+                    <div class="flex justify-between"><span>역대 최고 기록:</span> <b id="best-time" class="text-[#1d4ed8]">--:--.--</b></div>
+                </div>
+
+                <div class="flex gap-2">
+                    <button id="btn-clear-fieldbook" class="flex-1 py-3 pixel-btn-amber text-white font-bold text-sm">
+                        <i class="fa-solid fa-book-open mr-1"></i>필드북 보기
+                    </button>
+                    <button id="btn-retry-clear" class="flex-1 py-3 pixel-btn font-bold text-sm">
+                        다시 탐사하기
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Developer Teleport Modal -->
+    <div id="dev-modal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50">
+        <div class="pixel-box max-w-sm w-full p-5 text-amber-100">
+            <div class="flex justify-between items-center mb-4 border-b-2 border-[#24170c] pb-2">
+                <h3 class="text-base font-bold text-yellow-300"><i class="fa-solid fa-terminal mr-2"></i>개발자 워프 콘솔</h3>
+                <button id="btn-close-dev" class="text-amber-200 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div id="dev-auth-section" class="space-y-3">
+                <p class="text-xs text-amber-100/80">관리자 암호를 입력하세요.</p>
+                <input type="password" id="dev-password-input" placeholder="암호 입력" class="w-full bg-[#1f140a] border-2 border-[#705234] px-3 py-2 text-sm text-yellow-200 focus:outline-none">
+                <p id="dev-error-msg" class="hidden text-xs text-red-400 font-bold">암호가 일치하지 않습니다.</p>
+                <button id="btn-dev-login" class="w-full py-2 pixel-btn text-xs font-bold">인증 승인</button>
+            </div>
+
+            <div id="dev-teleport-section" class="hidden space-y-2 mt-2">
+                <p class="text-xs text-lime-300 font-bold mb-2">✓ 관리자 권한 승인됨 - 구역 워프</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <button data-cp="0" class="btn-tp py-2 pixel-btn text-xs">CP 0 (시작 숲)</button>
+                    <button data-cp="1" class="btn-tp py-2 pixel-btn text-xs">CP 1 (단풍 협곡)</button>
+                    <button data-cp="2" class="btn-tp py-2 pixel-btn text-xs">CP 2 (레이저 늪)</button>
+                    <button data-cp="3" class="btn-tp py-2 pixel-btn text-xs">CP 3 (SMA 유적)</button>
+                    <button data-cp="4" class="btn-tp py-2 pixel-btn text-xs">CP 4 (부유 바위)</button>
+                    <button data-cp="5" class="btn-tp py-2 pixel-btn text-xs">CP 5 (거미줄 다리)</button>
+                    <button data-cp="6" class="btn-tp py-2 pixel-btn text-xs">CP 6 (꿀벌 풍차)</button>
+                    <button data-cp="7" class="btn-tp py-2 pixel-btn text-xs">CP 7 (사마귀 성벽)</button>
+                    <button data-cp="8" class="btn-tp py-2 pixel-btn text-xs">CP 8 (흑요석 미로)</button>
+                    <button data-cp="9" class="btn-tp py-2 pixel-btn text-xs">CP 9 (잿빛 하늘)</button>
+                    <button data-cp="10" class="btn-tp py-2 pixel-btn text-xs">CP 10 (최종 캠프)</button>
+                    <button data-cp="goal" class="btn-tp col-span-2 py-2 pixel-btn-amber text-xs font-bold">GOAL (하늘 성소 포털)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Game Logic -->
+    <script>
+        /* ==========================================
+           PROCEDURAL PIXEL ART SPRITE & TEXTURE GENERATOR
+           (Generates authentic crisp NearestFilter pixel textures!)
+        ========================================== */
+        function createPixelTexture(width, height, drawFn) {
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = false;
+            drawFn(ctx, width, height);
+
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.magFilter = THREE.NearestFilter;
+            tex.minFilter = THREE.NearestFilter;
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            return tex;
+        }
+
+        // Generate Pixel Art Textures for 3D World
+        const PIXEL_TEXTURES = {};
+
+        function initPixelTextures() {
+            // 1. Lush Forest Grass & Dirt Top Texture (16x16 pixel grid)
+            PIXEL_TEXTURES.grass = createPixelTexture(16, 16, (ctx, w, h) => {
+                ctx.fillStyle = '#4e8c37';
+                ctx.fillRect(0, 0, w, h);
+                const shades = ['#3c7029', '#65ab48', '#7cc45c', '#457d30'];
+                for (let y = 0; y < h; y++) {
+                    for (let x = 0; x < w; x++) {
+                        if ((x * 7 + y * 13) % 5 === 0) {
+                            ctx.fillStyle = shades[(x + y) % shades.length];
+                            ctx.fillRect(x, y, 1, 1);
+                        }
+                    }
+                }
+                // Tiny yellow/white wildflowers
+                ctx.fillStyle = '#fef08a';
+                ctx.fillRect(3, 4, 1, 1);
+                ctx.fillRect(11, 12, 1, 1);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(12, 3, 1, 1);
+            });
+
+            // 2. Oak Wood Plank Texture (16x16)
+            PIXEL_TEXTURES.wood = createPixelTexture(16, 16, (ctx, w, h) => {
+                ctx.fillStyle = '#7c4d25';
+                ctx.fillRect(0, 0, w, h);
+                ctx.fillStyle = '#5c3616';
+                ctx.fillRect(0, 3, w, 1);
+                ctx.fillRect(0, 7, w, 1);
+                ctx.fillRect(0, 11, w, 1);
+                ctx.fillRect(0, 15, w, 1);
+                ctx.fillStyle = '#966133';
+                ctx.fillRect(0, 1, w, 1);
+                ctx.fillRect(0, 9, w, 1);
+                // Wood nails
+                ctx.fillStyle = '#2e1a0a';
+                ctx.fillRect(2, 2, 1, 1);
+                ctx.fillRect(13, 6, 1, 1);
+                ctx.fillRect(4, 10, 1, 1);
+            });
+
+            // 3. Mossy Cobblestone Texture (16x16)
+            PIXEL_TEXTURES.stone = createPixelTexture(16, 16, (ctx, w, h) => {
+                ctx.fillStyle = '#6b7280';
+                ctx.fillRect(0, 0, w, h);
+                ctx.fillStyle = '#4b5563';
+                ctx.fillRect(0, 0, 7, 7);
+                ctx.fillRect(8, 8, 7, 7);
+                ctx.fillStyle = '#9ca3af';
+                ctx.fillRect(1, 1, 5, 1);
+                ctx.fillRect(9, 9, 5, 1);
+                // Moss patches
+                ctx.fillStyle = '#4e8c37';
+                ctx.fillRect(6, 0, 3, 2);
+                ctx.fillRect(0, 7, 4, 2);
+                ctx.fillRect(12, 13, 3, 2);
+            });
+
+            // 4. Autumn Maple Terracotta Wall (16x16)
+            PIXEL_TEXTURES.autumnWall = createPixelTexture(16, 16, (ctx, w, h) => {
+                ctx.fillStyle = '#c2410c';
+                ctx.fillRect(0, 0, w, h);
+                ctx.fillStyle = '#9a3412';
+                for (let y = 0; y < h; y += 4) {
+                    ctx.fillRect(0, y, w, 1);
+                    const offset = (y % 8 === 0) ? 0 : 4;
+                    for (let x = offset; x < w; x += 8) {
+                        ctx.fillRect(x, y, 1, 4);
+                    }
+                }
+                ctx.fillStyle = '#ea580c';
+                ctx.fillRect(2, 1, 4, 1);
+                ctx.fillRect(10, 5, 4, 1);
+            });
+
+            // 5. Golden Amber & Honey Platform (16x16)
+            PIXEL_TEXTURES.gold = createPixelTexture(16, 16, (ctx, w, h) => {
+                ctx.fillStyle = '#d97706';
+                ctx.fillRect(0, 0, w, h);
+                ctx.strokeStyle = '#92400e';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+                ctx.fillStyle = '#fbbf24';
+                ctx.fillRect(2, 2, 12, 2);
+                ctx.fillRect(2, 2, 2, 12);
+                ctx.fillStyle = '#fef08a';
+                ctx.fillRect(3, 3, 2, 2);
+            });
+
+            // 6. Crumbling Autumn Leaf Block (16x16)
+            PIXEL_TEXTURES.crumble = createPixelTexture(16, 16, (ctx, w, h) => {
+                ctx.fillStyle = '#b91c1c';
+                ctx.fillRect(0, 0, w, h);
+                ctx.fillStyle = '#f97316';
+                ctx.fillRect(2, 2, 4, 4);
+                ctx.fillRect(9, 8, 5, 5);
+                ctx.fillStyle = '#facc15';
+                ctx.fillRect(10, 2, 3, 3);
+                ctx.fillRect(3, 10, 3, 3);
+                // Cracks
+                ctx.fillStyle = '#450a0a';
+                ctx.fillRect(7, 0, 1, 16);
+                ctx.fillRect(0, 7, 16, 1);
+            });
+
+            // 7. Crystal Sky / Superconductor Stone (16x16)
+            PIXEL_TEXTURES.crystal = createPixelTexture(16, 16, (ctx, w, h) => {
+                ctx.fillStyle = '#0284c7';
+                ctx.fillRect(0, 0, w, h);
+                ctx.fillStyle = '#38bdf8';
+                ctx.fillRect(2, 2, 5, 5);
+                ctx.fillRect(9, 9, 5, 5);
+                ctx.fillStyle = '#e0f2fe';
+                ctx.fillRect(3, 3, 2, 2);
+                ctx.fillRect(10, 10, 2, 2);
+            });
+
+            // 8. Floating Island Rich Soil & Root Texture (16x16)
+            PIXEL_TEXTURES.dirt = createPixelTexture(16, 16, (ctx, w, h) => {
+                ctx.fillStyle = '#6b4226';
+                ctx.fillRect(0, 0, w, h);
+                const pebbles = ['#4a2c18', '#855331', '#57341c', '#9ca3af'];
+                for (let y = 0; y < h; y += 2) {
+                    for (let x = 0; x < w; x += 2) {
+                        if ((x * 5 + y * 9) % 4 === 0) {
+                            ctx.fillStyle = pebbles[(x + y) % pebbles.length];
+                            ctx.fillRect(x, y, 2, 2);
+                        }
+                    }
+                }
+            });
+
+            // 9. Honeybee Hexagonal Comb Block (16x16)
+            PIXEL_TEXTURES.honeycomb = createPixelTexture(16, 16, (ctx, w, h) => {
+                ctx.fillStyle = '#f59e0b';
+                ctx.fillRect(0, 0, w, h);
+                ctx.fillStyle = '#b45309';
+                ctx.fillRect(2, 2, 5, 5);
+                ctx.fillRect(9, 9, 5, 5);
+                ctx.fillStyle = '#fef08a';
+                ctx.fillRect(3, 3, 2, 2);
+                ctx.fillRect(10, 10, 2, 2);
+            });
+        }
+
+        /* ==========================================
+           PIXEL SPRITE ICON GENERATOR FOR FIELDBOOK CARDS
+           (Draws 12x12 pixel-art insect & biomimicry icons!)
+        ========================================== */
+        function createPixelSpriteDataURL(pattern, palette) {
+            const size = pattern.length;
+            const scale = 4; // 48x48 crisp pixel art
+            const canvas = document.createElement('canvas');
+            canvas.width = size * scale;
+            canvas.height = size * scale;
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = false;
+
+            for (let y = 0; y < size; y++) {
+                for (let x = 0; x < size; x++) {
+                    const ch = pattern[y][x];
+                    if (palette[ch]) {
+                        ctx.fillStyle = palette[ch];
+                        ctx.fillRect(x * scale, y * scale, scale, scale);
+                    }
+                }
+            }
+            return canvas.toDataURL();
+        }
+
+        /* ==========================================
+           FIELDBOOK DATABASE (8 INSECT & BIOMIMICRY SAMPLES)
+        ========================================== */
+        const FIELDBOOK_DATA = [
+            {
+                id: 0,
+                code: "BUG-01",
+                name: "단풍잎벌레 & 셀룰로오스",
+                category: "숲속 잎맥 생체모방",
+                location: "가을 단풍 숲길 (초입)",
+                desc: "단풍잎의 잎맥 구조와 잎벌레의 초경량 껍질에서 착안한 나노 셀룰로오스 복합 소재입니다.",
+                sprite: [
+                    "......GG....",
+                    ".....GLLG...",
+                    "....GLLLLG..",
+                    "...GLLWWLLG.",
+                    "..GLLWLLWLLG",
+                    ".GLLWLLLLWLG",
+                    "GLLWLLLLLLWG",
+                    "GLLLLLLLLLLG",
+                    ".GLLLLLLLLG.",
+                    "..GGGGGGGG..",
+                    "....B..B....",
+                    "...B....B..."
+                ],
+                palette: { G: '#9a3412', L: '#f97316', W: '#fef08a', B: '#451a03' }
+            },
+            {
+                id: 1,
+                code: "BUG-02",
+                name: "장수풍뎅이 키틴 장갑",
+                category: "딱정벌레 외골격",
+                location: "협곡 우회로 (좌측)",
+                desc: "장수풍뎅이 등껍질의 나선형 미세 섬유 배열을 모사하여 충격을 분산시키는 방호 소재입니다.",
+                sprite: [
+                    "....KK..KK..",
+                    ".....KKKK...",
+                    ".....KRRK...",
+                    "....KRRRRK..",
+                    "...KRRRRRRK.",
+                    "..KRRWWRRRRK",
+                    "..KRRRRRRRRK",
+                    "..KRRRRRRRRK",
+                    "...KRRRRRRK.",
+                    "....KKKKKK..",
+                    "..KK.K..K.KK",
+                    ".K...K..K..K"
+                ],
+                palette: { K: '#291509', R: '#78350f', W: '#fbbf24' }
+            },
+            {
+                id: 2,
+                code: "BUG-03",
+                name: "청개구리 & 게코 흡착패드",
+                category: "미세 섬모 접착구조",
+                location: "협곡 우회로 (우측)",
+                desc: "수직 암벽에서도 미끄러지지 않는 미세 섬모 구조로 벽타기 도약을 가능하게 합니다.",
+                sprite: [
+                    "............",
+                    "..GG....GG..",
+                    ".GWWG..GWWG.",
+                    ".GKKGGGGKKG.",
+                    "..GGGGGGGG..",
+                    ".GLLLLLLLLG.",
+                    "GLLWWWWWWLLG",
+                    "GLLWWWWWWLLG",
+                    ".GLLLLLLLLG.",
+                    ".GG..GG..GG.",
+                    "GG...GG...GG",
+                    "............"
+                ],
+                palette: { G: '#1b4314', L: '#4e8c37', W: '#fef9c3', K: '#000000' }
+            },
+            {
+                id: 3,
+                code: "BUG-04",
+                name: "잠자리 날개 에어로젤",
+                category: "초경량 격자 구조",
+                location: "에어 제트 점프대 상공",
+                desc: "잠자리 날개의 시맥 격자처럼 99%가 공기로 이루어진 초경량 단열 비행 소재입니다.",
+                sprite: [
+                    "CCCC....CCCC",
+                    "CWWCC..CCWWC",
+                    ".CWWCCCCWWC.",
+                    "..CCCBBCBC..",
+                    "....CBBCC...",
+                    ".CCCCBBCCCC.",
+                    "CWWCCBBCCWWC",
+                    ".CCCCBBCCCC.",
+                    ".....BB.....",
+                    ".....BB.....",
+                    ".....BB.....",
+                    ".....BB....."
+                ],
+                palette: { C: '#0284c7', W: '#e0f2fe', B: '#1e293b' }
+            },
+            {
+                id: 4,
+                code: "BUG-05",
+                name: "불개미 열반응 SMA 합금",
+                category: "온도 감응형 스마트 합금",
+                location: "SMA 열반응 게이트",
+                desc: "열을 감지하면 원래 형태로 복원되는 니티놀 형상기억합금으로 고대 유적 문을 개방합니다.",
+                sprite: [
+                    "..R......R..",
+                    "...R.OO.R...",
+                    "....OOOO....",
+                    "...OOWWOO...",
+                    "....OOOO....",
+                    "..RR.OO.RR..",
+                    ".R..OOOO..R.",
+                    "....OOOO....",
+                    "..RR.OO.RR..",
+                    ".R..OOOO..R.",
+                    "....OOOO....",
+                    ".....OO....."
+                ],
+                palette: { R: '#7f1d1d', O: '#ef4444', W: '#fef08a' }
+            },
+            {
+                id: 5,
+                code: "BUG-06",
+                name: "반딧불이 자기부상 결정",
+                category: "양자 생체발광 광석",
+                location: "부유 바위 유적",
+                desc: "영하의 냉기 없이도 푸른 빛을 내며 공중 부양 발판을 띄우는 초전도 결정입니다.",
+                sprite: [
+                    "....BBBB....",
+                    "...BCCCCB...",
+                    "..BCWWWWCB..",
+                    ".BCWWWWWWCB.",
+                    ".BCWWYYWWCB.",
+                    ".BCWWYYWWCB.",
+                    ".BCWWWWWWCB.",
+                    "..BCWWWWCB..",
+                    "...BCCCCB...",
+                    "....BBBB....",
+                    ".....YY.....",
+                    "............"
+                ],
+                palette: { B: '#1e3a8a', C: '#38bdf8', W: '#e0f2fe', Y: '#fef08a' }
+            },
+            {
+                id: 6,
+                code: "BUG-07",
+                name: "무당거미 실크 와이어",
+                category: "고탄성 바이오 섬유",
+                location: "거미줄 붕괴 다리 상단",
+                desc: "강철보다 질기고 탄성이 뛰어난 거미줄 단백질을 합성한 초고강도 케이블 소재입니다.",
+                sprite: [
+                    "W....WW....W",
+                    ".W..W..W..W.",
+                    "..WW.KK.WW..",
+                    "..KKKKKKK...",
+                    ".KKYYKKYYKK.",
+                    "KKYYYYYYYYKK",
+                    "KKYYKKYYKKYY",
+                    ".KKKKKKKKKK.",
+                    "..W.KKKK.W..",
+                    ".W..W..W..W.",
+                    "W..........W",
+                    "............"
+                ],
+                palette: { W: '#e2e8f0', K: '#18181b', Y: '#facc15' }
+            },
+            {
+                id: 7,
+                code: "BUG-08",
+                name: "꿀벌 육각 벌집 구조체",
+                category: "초경량 허니콤 코어",
+                location: "하늘 꿀벌 풍차 협곡",
+                desc: "최소한의 재료로 최대의 하중과 바람 저항을 견디는 육각형 벌집 격자 구조 소재입니다.",
+                sprite: [
+                    "....WWWW....",
+                    "...WCCCCW...",
+                    "..WCCCCCCW..",
+                    "..KKYYYYKK..",
+                    ".KKKKKKKKKK.",
+                    ".KKYYYYYYKK.",
+                    ".KKKKKKKKKK.",
+                    "..KKYYYYKK..",
+                    "...KKKKKK...",
+                    ".....KK.....",
+                    "............",
+                    "............"
+                ],
+                palette: { W: '#ffffff', C: '#bae6fd', K: '#291509', Y: '#facc15' }
+            },
+            {
+                id: 8,
+                code: "BUG-09",
+                name: "왕사마귀 위장 외골격",
+                category: "생체 잎맥 위장 & 관절",
+                location: "사마귀 격자 성벽 상단",
+                desc: "나뭇잎과 똑같은 엽록소 광학 반사율과 고속 탄성 관절을 지닌 포식자 생체모방 소재입니다.",
+                sprite: [
+                    "..G......G..",
+                    "...G.LL.G...",
+                    "...GWWWWG...",
+                    "....GLLG....",
+                    ".GG..LL..GG.",
+                    "G..G.LL.G..G",
+                    "....GLLG....",
+                    "...GLLLLG...",
+                    "..G.LLLL.G..",
+                    ".G..LLLL..G.",
+                    ".....LL.....",
+                    "............"
+                ],
+                palette: { G: '#1b4314', L: '#65ab48', W: '#fef08a' }
+            },
+            {
+                id: 9,
+                code: "BUG-10",
+                name: "모르포 나비 광결정 인분",
+                category: "구조색 광학 메타물질",
+                location: "최종 성소 포털 제단",
+                desc: "색소 없이 나노 격자 구조의 빛 반사만으로 영롱한 푸른 광택을 내는 신비의 나비 표본입니다.",
+                sprite: [
+                    ".BBB....BBB.",
+                    "BCCCB..BCCCB",
+                    "BCWCCB.BCCWB",
+                    "BCCCBKKBCCCB",
+                    ".BBB.KK.BBB.",
+                    ".BBB.KK.BBB.",
+                    "BCCCBKKBCCCB",
+                    "BCWCCB.BCCWB",
+                    "BCCCB..BCCCB",
+                    ".BBB....BBB.",
+                    "............",
+                    "............"
+                ],
+                palette: { B: '#1d4ed8', C: '#38bdf8', W: '#ffffff', K: '#1e1b4b' }
+            }
+        ];
+
+        /* ==========================================
+           QUEST DEFINITIONS BY CHECKPOINT
+        ========================================== */
+        const QUEST_STAGES = [
+            { title: "1단계: 가을 단풍 숲길 돌파", desc: "부서지는 낙엽 발판을 밟고 빠르게 점프해 CP 1에 도달하세요." },
+            { title: "2단계: 협곡 성문 & 함정 회피", desc: "파란 스위치를 작동시키고, 붉은 함정을 피해 CP 2로 이동하세요." },
+            { title: "3단계: 회전 레이저 & 바람 점프대", desc: "레이저를 뛰어넘고 바람 점프대로 고지대(CP 3)에 오르세요." },
+            { title: "4단계: 불개미 SMA 유적 가열", desc: "열 스위치로 유적 문을 열고 부유 결정 구역(CP 4)으로 진입하세요." },
+            { title: "5단계: 자기부상 바위 도약", desc: "하늘에 떠 있는 푸른 결정 발판을 건너 CP 5에 도달하세요." },
+            { title: "6단계: 거미줄 붕괴 다리 돌파", desc: "무너지는 거미줄 다리를 건너 꿀벌 풍차 협곡(CP 6)으로 향하세요." },
+            { title: "7단계: 하늘 꿀벌 풍차 협곡", desc: "회전하는 풍차 날개를 피해 벌집 발판을 타고 CP 7에 오르세요." },
+            { title: "8단계: 사마귀 성벽 & 부유 바위", desc: "수직 성벽을 넘어 부유 바위 구역의 출구 발판에 도달하세요." },
+            { title: "9단계: 흑요석 미로", desc: "갈림길과 수정 벽 사이에서 안전한 경로를 찾아 붉은 바닥 함정을 피하세요." },
+            { title: "10단계: 잿빛 하늘", desc: "공중을 순찰하는 화염 몬스터와 붕괴 발판을 피해 최종 캠프에 도달하세요." },
+            { title: "최종단계: 하늘 성소", desc: "마지막 발판을 건너 성소 포털에 도달하세요!" }
+        ];
+
+        /* ==========================================
+           RETRO CHIPTUNE SOUND SYNTHESIZER (TONE.JS)
+        ========================================== */
+        let soundEnabled = true;
+        let synth = null;
+
+        function initAudio() {
+            if (!synth && typeof Tone !== 'undefined') {
+                synth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: "square" }, // 8-bit chiptune square wave!
+                    envelope: { attack: 0.005, decay: 0.12, sustain: 0.02, release: 0.1 }
+                }).toDestination();
+                synth.volume.value = -14;
+            }
+        }
+
+        function playSfx(type) {
+            if (!soundEnabled || !synth) return;
+            try {
+                if (Tone.context.state !== 'running') Tone.start();
+                const now = Tone.now();
+                if (type === 'jump') synth.triggerAttackRelease("C5", "32n", now);
+                else if (type === 'doubleJump') synth.triggerAttackRelease("G5", "32n", now);
+                else if (type === 'wallJump') synth.triggerAttackRelease("A5", "32n", now);
+                else if (type === 'dash') synth.triggerAttackRelease(["E4", "B4"], "32n", now);
+                else if (type === 'bounce') {
+                    synth.triggerAttackRelease("C5", "32n", now);
+                    synth.triggerAttackRelease("G5", "32n", now + 0.05);
+                    synth.triggerAttackRelease("C6", "16n", now + 0.1);
+                } else if (type === 'token') {
+                    synth.triggerAttackRelease("E5", "32n", now);
+                    synth.triggerAttackRelease("G5", "32n", now + 0.06);
+                    synth.triggerAttackRelease("C6", "16n", now + 0.12);
+                } else if (type === 'checkpoint') {
+                    synth.triggerAttackRelease("C5", "32n", now);
+                    synth.triggerAttackRelease("E5", "32n", now + 0.07);
+                    synth.triggerAttackRelease("G5", "16n", now + 0.14);
+                } else if (type === 'clear') {
+                    synth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "8n", now);
+                } else if (type === 'die') {
+                    synth.triggerAttackRelease("G2", "8n", now);
+                    synth.triggerAttackRelease("C2", "4n", now + 0.1);
+                }
+            } catch (e) { /* Ignore audio context warnings */ }
+        }
+
+        /* ==========================================
+           GLOBAL ENGINE CONFIG & STATE
+        ========================================== */
+        const CONFIG = {
+            gravity: 28,
+            walkSpeed: 7.8,
+            sprintSpeed: 13.8,
+            jumpForce: 11.6,
+            wallJumpForce: 12.2,
+            dashForce: 18.5,
+            airControl: 0.55,
+            maxStamina: 100,
+            staminaRegen: 8,
+            staminaDashCost: 40,
+            staminaRegenDelay: 1.5,
+            coyoteTime: 0.28,      // 발판 끝 이탈 후 0.28초간 지상 점프 허용
+            jumpBufferTime: 0.16   // 착지 0.16초 전 점프 선입력 버퍼
+        };
+
+        let scene, camera, renderer, clock;
+        let isGameRunning = false;
+        let isLowResPixel = true; // Crisp retro pixel resolution toggle
+        let gameTime = 0;
+        let bestTime = null;
+        let unlockedSamples = new Set();
+
+        const CHARACTER_PRESETS = {
+            jumper:   { name: '루키 점퍼', suitColor: 0x1d4ed8, capColor: 0xdc2626, accent: 0xfacc15, style: 'cap' },
+            ranger:   { name: '숲의 정찰자', suitColor: 0x166534, capColor: 0x14532d, accent: 0xfde68a, style: 'hood' },
+            engineer: { name: '황금 엔지니어', suitColor: 0xf59e0b, capColor: 0x374151, accent: 0x38bdf8, style: 'helmet' },
+            mage:     { name: '밤하늘 마도사', suitColor: 0x6d28d9, capColor: 0x312e81, accent: 0xf0abfc, style: 'wizard' }
+        };
+        const playerCustom = {
+            nickname: 'YVES-SCOUT',
+            character: 'jumper',
+            suitColor: CHARACTER_PRESETS.jumper.suitColor,
+            capColor: CHARACTER_PRESETS.jumper.capColor,
+            visorColor: CHARACTER_PRESETS.jumper.accent
+        };
+
+        const player = {
+            mesh: null,
+            position: new THREE.Vector3(0, 5, 0),
+            velocity: new THREE.Vector3(),
+            rotationY: 0,
+            pitch: 0,
+            isGrounded: false,
+            canDoubleJump: true,
+            coyoteTimer: 0,
+            jumpBufferTimer: 0,
+            groundVelocity: new THREE.Vector3(),
+            isSprinting: false,
+            isSliding: false,
+            isTouchingWall: false,
+            wallNormal: new THREE.Vector3(),
+            wallJumpCooldown: 0,
+            stamina: CONFIG.maxStamina,
+            staminaRegenTimer: 0,
+            dashCooldown: 0,
+            slideTimer: 0,
+            sprintBoostTimer: 0,
+            isGliding: false,
+            glideQueued: false,
+            glideSpeed: 12.0,
+            parachuteRig: null,
+            dashFlameRig: null,
+            potionRig: null,
+            potionBottle: null,
+            sprintAura: null,
+            dashVisualTimer: 0,
+            potionAnimTimer: 0,
+            glideLeftArm: null,
+            glideRightArm: null,
+            leftLegPivot: null,
+            rightLegPivot: null,
+            walkCycle: 0,
+            height: 1.8,
+            radius: 0.4,
+            tokensCollected: 0,
+            currentCheckpoint: new THREE.Vector3(0, 5, 0),
+            currentCpIndex: 0
+        };
+
+        // Controls State
+        let cameraOffset = new THREE.Vector3(0, 1.7, 4.0);
+        let isMouseDown = false;
+        let mouseLastX = 0, mouseLastY = 0;
+        let touchLookId = null;
+        let touchLookLastX = 0, touchLookLastY = 0;
+        const keys = {};
+        const touchInput = { x: 0, y: 0, isActive: false };
+
+        // Game Objects
+        const platforms = [];
+        const wallPlatforms = [];
+        const crumblingPlats = [];
+        const movingPlats = [];
+        const floatingIslands = [];
+        const fireMonsters = [];
+        const tokens = [];
+        const checkpoints = [];
+        let chaseWall = null;
+
+        // Canyon Puzzle Elements
+        let canyonDoorMesh = null;
+        let canyonDoorSwitch = null;
+        let canyonTrapSwitch = null;
+        let canyonTrapFloor = null;
+        let canyonDoorState = { isOpening: false, isOpen: false };
+        let canyonTrapState = { isTriggered: false, rotAngle: 0 };
+
+        // SMA Gate Elements
+        let smaSwitchMesh = null;
+        let smaGateDoor = null;
+        let smaCoilMesh = null;
+        let smaGateState = { isHeating: false, heatProgress: 0, isOpen: false };
+
+        let confettiParticles = [];
+
+        /* ==========================================
+           SCENE & PIXEL WORLD INITIALIZATION
+        ========================================== */
+        function initScene() {
+            initPixelTextures();
+            const container = document.getElementById('game-container');
+
+            scene = new THREE.Scene();
+            // Warm Pixel Sky Backdrop (Daylight Meadow & Autumn Horizon)
+            scene.background = createPixelSkyTexture();
+            scene.fog = new THREE.FogExp2(0x93c5fd, 0.0055);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+            renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: "high-performance" });
+            applyPixelResolution();
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.BasicShadowMap; // Hard crisp pixel shadows!
+            container.appendChild(renderer.domElement);
+
+            clock = new THREE.Clock();
+
+            // Bright Daylight Meadow Lighting
+            const ambientLight = new THREE.AmbientLight(0xfffbeb, 0.95);
+            scene.add(ambientLight);
+
+            const sunLight = new THREE.DirectionalLight(0xfef08a, 1.4);
+            sunLight.position.set(60, 95, 45);
+            sunLight.castShadow = true;
+            sunLight.shadow.mapSize.width = 1024;
+            sunLight.shadow.mapSize.height = 1024;
+            sunLight.shadow.camera.near = 0.5;
+            sunLight.shadow.camera.far = 420;
+            const d = 110;
+            sunLight.shadow.camera.left = -d;
+            sunLight.shadow.camera.right = d;
+            sunLight.shadow.camera.top = d;
+            sunLight.shadow.camera.bottom = -d;
+            scene.add(sunLight);
+
+            createPlayerMesh();
+            createPixelCloudsAndTrees();
+            createAutumnParticles();
+            buildAutumnLevel();
+            renderFieldbookUI();
+
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        function applyPixelResolution() {
+            const scale = isLowResPixel ? 0.42 : 0.85; // Crisp 16-bit pixel rendering
+            renderer.setSize(Math.floor(window.innerWidth * scale), Math.floor(window.innerHeight * scale), false);
+        }
+
+        /* ==========================================
+           PIXEL SKY BACKDROP & VOXEL FOREST SCENERY
+        ========================================== */
+        function createPixelSkyTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = false;
+
+            // Banded pixel sky gradient
+            const bands = ['#38bdf8', '#60a5fa', '#7dd3fc', '#bae6fd', '#fef3c7', '#fde68a'];
+            const bandH = Math.ceil(64 / bands.length);
+            bands.forEach((col, i) => {
+                ctx.fillStyle = col;
+                ctx.fillRect(0, i * bandH, 64, bandH);
+            });
+
+            // Pixel Sun
+            ctx.fillStyle = '#fef08a';
+            ctx.fillRect(46, 8, 8, 8);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(48, 10, 4, 4);
+
+            // Pixel Clouds
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(8, 14, 12, 3);
+            ctx.fillRect(10, 12, 8, 2);
+            ctx.fillRect(28, 22, 14, 3);
+            ctx.fillRect(31, 20, 8, 2);
+
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.magFilter = THREE.NearestFilter;
+            tex.minFilter = THREE.NearestFilter;
+            return tex;
+        }
+
+        function createPixelCloudsAndTrees() {
+            // Floating Voxel Clouds in the Sky
+            const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+            for (let i = 0; i < 32; i++) {
+                const cloudGroup = new THREE.Group();
+                const mainBlock = new THREE.Mesh(new THREE.BoxGeometry(11, 2.5, 6), cloudMat);
+                const topBlock = new THREE.Mesh(new THREE.BoxGeometry(6, 2, 4), cloudMat);
+                topBlock.position.y = 1.8;
+                cloudGroup.add(mainBlock, topBlock);
+
+                cloudGroup.position.set(
+                    (Math.random() - 0.5) * 240,
+                    48 + Math.random() * 35,
+                    -Math.random() * 440 + 20
+                );
+                scene.add(cloudGroup);
+            }
+
+            // Voxel Floating Sky Islands with Lush Grass Caps, Tapered Soil Roots & Pixel Trees
+            const trunkMat = new THREE.MeshLambertMaterial({ color: 0x5c3616 });
+            const leafColors = [0x3f7a38, 0x558b2f, 0xd97706, 0xea580c];
+            const vineMat = new THREE.MeshLambertMaterial({ color: 0x4e8c37 });
+
+            for (let i = 0; i < 46; i++) {
+                const islandGroup = new THREE.Group();
+                const islandW = 6 + (i % 3) * 2.5;
+                const islandD = 6 + ((i + 1) % 3) * 2.5;
+
+                // 1. Top Grass Turf Layer (Pixel Grass Texture)
+                const grassMat = makeTiledMat(PIXEL_TEXTURES.grass, islandW, islandD);
+                const topTurf = new THREE.Mesh(new THREE.BoxGeometry(islandW, 1.4, islandD), grassMat);
+                topTurf.position.y = -0.7;
+                islandGroup.add(topTurf);
+
+                // 2. Stepped Inverted Pyramid Dirt & Rock Island Base
+                const midDirtMat = makeTiledMat(PIXEL_TEXTURES.dirt, islandW * 0.75, islandD * 0.75);
+                const midDirt = new THREE.Mesh(new THREE.BoxGeometry(islandW * 0.74, 2.4, islandD * 0.74), midDirtMat);
+                midDirt.position.y = -2.6;
+                islandGroup.add(midDirt);
+
+                const tipStoneMat = makeTiledMat(PIXEL_TEXTURES.stone, islandW * 0.4, islandD * 0.4);
+                const bottomTip = new THREE.Mesh(new THREE.BoxGeometry(islandW * 0.42, 2.2, islandD * 0.42), tipStoneMat);
+                bottomTip.position.y = -4.9;
+                islandGroup.add(bottomTip);
+
+                const subTip = new THREE.Mesh(new THREE.BoxGeometry(islandW * 0.2, 1.4, islandD * 0.2), tipStoneMat);
+                subTip.position.y = -6.7;
+                islandGroup.add(subTip);
+
+                // 3. Hanging Pixel Vines & Shrubs on Island Edge
+                const vine1 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 2.6, 0.5), vineMat);
+                vine1.position.set(islandW * 0.48, -2.0, islandD * 0.25);
+                const vine2 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.8, 0.5), vineMat);
+                vine2.position.set(-islandW * 0.48, -1.6, -islandD * 0.2);
+                islandGroup.add(vine1, vine2);
+
+                // 4. Primary Voxel Tree Rooted Firmly on Top of the Island (y = 0)
+                const tree = new THREE.Group();
+                const trunkH = 4.2 + (i % 3) * 0.8;
+                const trunk = new THREE.Mesh(new THREE.BoxGeometry(1.3, trunkH, 1.3), trunkMat);
+                trunk.position.y = trunkH / 2;
+                tree.add(trunk);
+
+                const leafMat = new THREE.MeshLambertMaterial({ color: leafColors[i % leafColors.length] });
+                const crown1 = new THREE.Mesh(new THREE.BoxGeometry(4.6, 2.6, 4.6), leafMat);
+                crown1.position.y = trunkH + 1.0;
+                const crown2 = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.0, 2.8), leafMat);
+                crown2.position.y = trunkH + 3.1;
+                tree.add(crown1, crown2);
+                tree.position.set(0.4, 0, -0.3);
+                islandGroup.add(tree);
+
+                // Optional Second Smaller Bush/Tree on Larger Islands
+                if (islandW >= 8) {
+                    const smallTrunk = new THREE.Mesh(new THREE.BoxGeometry(0.8, 2.4, 0.8), trunkMat);
+                    smallTrunk.position.set(-2.2, 1.2, 1.8);
+                    const smallLeafMat = new THREE.MeshLambertMaterial({ color: leafColors[(i + 1) % leafColors.length] });
+                    const smallCrown = new THREE.Mesh(new THREE.BoxGeometry(2.6, 2.0, 2.6), smallLeafMat);
+                    smallCrown.position.set(-2.2, 2.9, 1.8);
+                    islandGroup.add(smallTrunk, smallCrown);
+                }
+
+                const side = (i % 2 === 0) ? -1 : 1;
+                const xPos = side * (16 + Math.random() * 44);
+                const zPos = -i * 9.2 + 12;
+                const yPos = Math.max(-2, (-zPos * 0.13) - 4 + (Math.random() - 0.5) * 6);
+
+                islandGroup.position.set(xPos, yPos, zPos);
+                islandGroup.rotation.y = (i % 4) * (Math.PI / 2);
+                islandGroup.userData = { baseY: yPos, phase: i * 0.7, speed: 0.9 + (i % 3) * 0.25 };
+                scene.add(islandGroup);
+                floatingIslands.push(islandGroup);
+            }
+        }
+
+        /* ==========================================
+           BLOCKY VOXEL EXPLORER PLAYER MESH
+        ========================================== */
+        function createPlayerMesh() {
+            if (player.mesh) scene.remove(player.mesh);
+            const preset = CHARACTER_PRESETS[playerCustom.character] || CHARACTER_PRESETS.jumper;
+            const group = new THREE.Group();
+            const mat = (color) => new THREE.MeshLambertMaterial({ color });
+            const addBox = (w,h,d,color,x,y,z) => {
+                const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat(color));
+                m.position.set(x,y,z); m.castShadow = true; group.add(m); return m;
+            };
+
+            // Blocky platform-game adventurer: each preset changes the silhouette and outfit.
+            addBox(0.68, 0.82, 0.46, playerCustom.suitColor, 0, 0.84, 0);
+            addBox(0.56, 0.56, 0.56, 0xf2c99b, 0, 1.53, 0);
+            // Face: eyes and a small pixel nose, facing the -Z direction.
+            addBox(0.075,0.09,0.035,0x24170c,-0.13,1.57,-0.294);
+            addBox(0.075,0.09,0.035,0x24170c, 0.13,1.57,-0.294);
+            addBox(0.10,0.07,0.06,0xd99667,0,1.43,-0.31);
+
+            // Signature outfit details.
+            if (playerCustom.character === 'jumper') {
+                addBox(0.72,0.28,0.49,0x1d4ed8,0,0.62,-0.015); // overalls
+                addBox(0.13,0.13,0.05,0xfacc15,-0.19,0.76,-0.255);
+                addBox(0.13,0.13,0.05,0xfacc15, 0.19,0.76,-0.255);
+                addBox(0.68,0.18,0.66,playerCustom.capColor,0,1.84,-0.035);
+                addBox(0.74,0.10,0.28,playerCustom.capColor,0,1.76,-0.22);
+                addBox(0.20,0.12,0.035,0xffffff,0,1.85,-0.37);
+                // A small original pixel moustache gives the retro jumper a playful face.
+                addBox(0.18,0.055,0.035,0x51321f,-0.10,1.46,-0.34);
+                addBox(0.18,0.055,0.035,0x51321f, 0.10,1.46,-0.34);
+            } else if (playerCustom.character === 'ranger') {
+                addBox(0.78,0.70,0.18,0x14532d,0,0.96,0.31); // short leaf cape
+                addBox(0.72,0.20,0.62,playerCustom.capColor,0,1.79,0.02);
+                addBox(0.62,0.28,0.54,playerCustom.capColor,0,1.66,0.02); // hood
+                addBox(0.20,0.10,0.04,playerCustom.accent,0,1.30,-0.25); // leaf clasp
+                addBox(0.08,0.48,0.08,0x8b5a2b,0.46,0.90,0.08); // staff
+            } else if (playerCustom.character === 'engineer') {
+                addBox(0.72,0.18,0.68,playerCustom.capColor,0,1.82,0);
+                addBox(0.56,0.12,0.54,0xfbbf24,0,1.93,0);
+                addBox(0.14,0.14,0.14,playerCustom.accent,0,1.99,-0.02);
+                addBox(0.20,0.28,0.12,0x78350f,0.40,0.94,0.12); // tool pouch
+                addBox(0.16,0.16,0.04,0x334155,0.40,0.96,0.045);
+            } else if (playerCustom.character === 'mage') {
+                addBox(0.72,0.18,0.68,playerCustom.capColor,0,1.80,0);
+                const hat = new THREE.Mesh(new THREE.ConeGeometry(0.34,0.62,4),mat(playerCustom.capColor));
+                hat.position.set(0,2.16,0.02); hat.rotation.y=Math.PI/4; hat.castShadow=true; group.add(hat);
+                addBox(0.15,0.15,0.035,playerCustom.accent,0.18,1.80,-0.34);
+                addBox(0.10,0.10,0.10,0xf0abfc,0.45,1.15,0.08); // crystal charm
+            }
+
+            // 관절 피벗을 사용해 걷기·달리기 때 팔과 다리가 실제로 교차 회전하도록 구성.
+            const leftArmPivot = new THREE.Group();
+            leftArmPivot.position.set(-0.46, 1.16, 0);
+            group.add(leftArmPivot);
+            const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.20,0.62,0.22), mat(playerCustom.suitColor));
+            leftArm.position.y = -0.30; leftArm.castShadow = true; leftArmPivot.add(leftArm);
+
+            const rightArmPivot = new THREE.Group();
+            rightArmPivot.position.set(0.46, 1.16, 0);
+            group.add(rightArmPivot);
+            const rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.20,0.62,0.22), mat(playerCustom.suitColor));
+            rightArm.position.y = -0.30; rightArm.castShadow = true; rightArmPivot.add(rightArm);
+            player.glideLeftArm = leftArmPivot;
+            player.glideRightArm = rightArmPivot;
+
+            const leftLegPivot = new THREE.Group();
+            leftLegPivot.position.set(-0.20, 0.48, 0);
+            group.add(leftLegPivot);
+            const leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.24,0.48,0.25), mat(0x3f3028));
+            leftLeg.position.y = -0.24; leftLeg.castShadow = true; leftLegPivot.add(leftLeg);
+            const leftBoot = new THREE.Mesh(new THREE.BoxGeometry(0.30,0.14,0.38), mat(0x2b211b));
+            leftBoot.position.set(0,-0.42,-0.04); leftBoot.castShadow = true; leftLegPivot.add(leftBoot);
+
+            const rightLegPivot = new THREE.Group();
+            rightLegPivot.position.set(0.20, 0.48, 0);
+            group.add(rightLegPivot);
+            const rightLeg = new THREE.Mesh(new THREE.BoxGeometry(0.24,0.48,0.25), mat(0x3f3028));
+            rightLeg.position.y = -0.24; rightLeg.castShadow = true; rightLegPivot.add(rightLeg);
+            const rightBoot = new THREE.Mesh(new THREE.BoxGeometry(0.30,0.14,0.38), mat(0x2b211b));
+            rightBoot.position.set(0,-0.42,-0.04); rightBoot.castShadow = true; rightLegPivot.add(rightBoot);
+            player.leftLegPivot = leftLegPivot;
+            player.rightLegPivot = rightLegPivot;
+
+            // Field pack / character-specific back accessory.
+            addBox(0.50,0.58,0.30, playerCustom.character==='ranger'?0x854d0e:0x78350f, 0,0.96,0.36);
+
+            // 접이식 낙하산: 활공 중에만 펼쳐지는 반구형 캐노피와 연결 줄
+            const parachuteRig = new THREE.Group();
+            parachuteRig.position.set(0, 0, 0.30);
+            const canopy = new THREE.Mesh(
+                new THREE.SphereGeometry(0.92, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2),
+                new THREE.MeshLambertMaterial({ color: 0xf97316, side: THREE.DoubleSide })
+            );
+            canopy.scale.set(1.42, 0.82, 0.88);
+            canopy.position.set(0, 3.02, 0.12);
+            canopy.castShadow = true;
+            parachuteRig.add(canopy);
+
+            // 캐노피의 방사형 패널 이음선을 픽셀풍으로 표현
+            const ribMaterial = new THREE.LineBasicMaterial({ color: 0xffe7b5 });
+            for (let i = 0; i < 12; i++) {
+                const angle = (i / 12) * Math.PI * 2;
+                const points = [
+                    new THREE.Vector3(0, 3.02, 0.12),
+                    new THREE.Vector3(Math.cos(angle) * 1.30, 3.02 + Math.sin(Math.PI / 2) * 0.02, 0.12 + Math.sin(angle) * 0.78)
+                ];
+                parachuteRig.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), ribMaterial));
+            }
+            const cordMaterial = new THREE.LineBasicMaterial({ color: 0xf8e7c5 });
+            const cordPoints = [
+                [-1.18,3.03,0.12, -0.38,1.30,0.12],
+                [ 1.18,3.03,0.12,  0.38,1.30,0.12],
+                [-0.72,3.38,0.12, -0.24,1.34,0.12],
+                [ 0.72,3.38,0.12,  0.24,1.34,0.12]
+            ];
+            for (const c of cordPoints) {
+                const line = new THREE.Line(
+                    new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(c[0],c[1],c[2]), new THREE.Vector3(c[3],c[4],c[5])]),
+                    cordMaterial
+                );
+                parachuteRig.add(line);
+            }
+            parachuteRig.visible = false;
+            group.add(parachuteRig);
+            player.parachuteRig = parachuteRig;
+
+            // 대시 시 등 뒤에서 짧게 솟구치는 불꽃 이펙트
+            const dashFlameRig = new THREE.Group();
+            dashFlameRig.position.set(0, 0.88, 0.58);
+            const flameColors = [0xff3b18, 0xff8a00, 0xffd34e];
+            for (let i = 0; i < 7; i++) {
+                const flame = new THREE.Mesh(
+                    new THREE.ConeGeometry(0.12 + (i % 3) * 0.035, 0.48 + (i % 2) * 0.22, 5),
+                    new THREE.MeshBasicMaterial({ color: flameColors[i % flameColors.length], transparent: true, opacity: 0.88 })
+                );
+                flame.position.set((i - 3) * 0.13, (i % 3 - 1) * 0.10, 0.12 + (i % 2) * 0.12);
+                flame.rotation.x = -Math.PI / 2.6;
+                flame.rotation.z = (i - 3) * 0.10;
+                dashFlameRig.add(flame);
+            }
+            dashFlameRig.visible = false;
+            group.add(dashFlameRig);
+            player.dashFlameRig = dashFlameRig;
+
+            // 질주 포션: 손에 들고 마시는 병 모형
+            const potionRig = new THREE.Group();
+            potionRig.position.set(0.48, 1.02, -0.30);
+            const bottle = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.105, 0.14, 0.34, 8),
+                new THREE.MeshLambertMaterial({ color: 0x22c55e, emissive: 0x064e3b, emissiveIntensity: 0.35 })
+            );
+            bottle.rotation.z = -0.18;
+            potionRig.add(bottle);
+            const potionNeck = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.055, 0.075, 0.12, 8),
+                new THREE.MeshLambertMaterial({ color: 0x86efac })
+            );
+            potionNeck.position.y = 0.22;
+            potionRig.add(potionNeck);
+            const potionCork = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.06, 0.06, 0.08, 6),
+                new THREE.MeshLambertMaterial({ color: 0x8b5a2b })
+            );
+            potionCork.position.y = 0.32;
+            potionRig.add(potionCork);
+            potionRig.visible = false;
+            group.add(potionRig);
+            player.potionRig = potionRig;
+            player.potionBottle = bottle;
+
+            // 포션 효과가 지속되는 동안 캐릭터를 감싸는 은은한 빛
+            const aura = new THREE.Mesh(
+                new THREE.SphereGeometry(1.22, 12, 10),
+                new THREE.MeshBasicMaterial({ color: 0x6dffb0, transparent: true, opacity: 0.16, wireframe: true })
+            );
+            aura.position.set(0, 1.0, 0);
+            aura.visible = false;
+            group.add(aura);
+            player.sprintAura = aura;
+
+            const badgeCanvas = document.createElement('canvas');
+            badgeCanvas.width = 256; badgeCanvas.height = 64;
+            const ctx = badgeCanvas.getContext('2d'); ctx.imageSmoothingEnabled = false;
+            ctx.fillStyle='#24170c'; ctx.fillRect(4,8,248,48);
+            ctx.fillStyle='#f4e6c8'; ctx.fillRect(8,12,240,40);
+            ctx.font='Bold 24px DungGeunMo, monospace'; ctx.fillStyle='#24170c'; ctx.textAlign='center';
+            ctx.fillText(playerCustom.nickname,128,40);
+            const badgeTexture = new THREE.CanvasTexture(badgeCanvas); badgeTexture.magFilter=THREE.NearestFilter; badgeTexture.minFilter=THREE.NearestFilter;
+            const sprite = new THREE.Sprite(new THREE.SpriteMaterial({map:badgeTexture,transparent:true}));
+            sprite.position.set(0,2.42,0); sprite.scale.set(1.8,0.45,1); group.add(sprite);
+            player.mesh=group; scene.add(player.mesh);
+        }
+
+        /* ==========================================
+           PIXEL FALLING LEAVES & POLLEN PARTICLES
+        ========================================== */
+        function createAutumnParticles() {
+            const count = 550;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(count * 3);
+            const velocities = new Float32Array(count * 3);
+
+            for (let i = 0; i < count; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * 180;
+                positions[i * 3 + 1] = Math.random() * 60 + 5;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 360;
+
+                velocities[i * 3] = (Math.random() - 0.5) * 0.9;
+                velocities[i * 3 + 1] = -Math.random() * 1.2 - 0.5;
+                velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.9;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const material = new THREE.PointsMaterial({ size: 0.5, color: 0xfbbf24, transparent: true, opacity: 0.9 });
+            const particles = new THREE.Points(geometry, material);
+            particles.userData = { velocities: velocities };
+            scene.add(particles);
+
+            scene.userData.updateParticles = (delta) => {
+                const pos = geometry.attributes.position.array;
+                const vel = particles.userData.velocities;
+                for (let i = 0; i < count; i++) {
+                    pos[i * 3] += vel[i * 3] * delta;
+                    pos[i * 3 + 1] += vel[i * 3 + 1] * delta;
+                    pos[i * 3 + 2] += vel[i * 3 + 2] * delta;
+
+                    if (pos[i * 3 + 1] < -10) {
+                        pos[i * 3] = player.position.x + (Math.random() - 0.5) * 120;
+                        pos[i * 3 + 1] = player.position.y + 40;
+                        pos[i * 3 + 2] = player.position.z + (Math.random() - 0.5) * 120;
+                    }
+                }
+                geometry.attributes.position.needsUpdate = true;
+            };
+        }
+
+        /* ==========================================
+           LEVEL DESIGN WITH PIXEL TEXTURED MATERIALS
+        ========================================== */
+        function makeTiledMat(baseTex, w, d) {
+            const tex = baseTex.clone();
+            tex.needsUpdate = true;
+            tex.repeat.set(Math.max(1, Math.round(w / 2)), Math.max(1, Math.round(d / 2)));
+            return new THREE.MeshLambertMaterial({ map: tex });
+        }
+
+        function buildAutumnLevel() {
+            function addPlatform(x, y, z, w, h, d, texType = 'stone', isWall = false) {
+                const geo = new THREE.BoxGeometry(w, h, d);
+                const mat = makeTiledMat(PIXEL_TEXTURES[texType], w, isWall ? h : d);
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.set(x, y, z);
+                mesh.receiveShadow = true;
+                mesh.castShadow = true;
+                mesh.userData = { w, h, d, isWall, initialPos: new THREE.Vector3(x, y, z) };
+                scene.add(mesh);
+                platforms.push(mesh);
+                if (isWall) wallPlatforms.push(mesh);
+                return mesh;
+            }
+
+            function addCrumblingPlatform(x, y, z, w, h, d, delay = 0.8) {
+                const mesh = addPlatform(x, y, z, w, h, d, 'crumble');
+                mesh.userData.isCrumbling = true;
+                mesh.userData.crumbleDelay = delay;
+                mesh.userData.timer = 0;
+                mesh.userData.triggered = false;
+                mesh.userData.initialY = y;
+                crumblingPlats.push(mesh);
+            }
+
+            function addMovingPlatform(x, y, z, w, h, d, moveVector, speed = 2) {
+                const mesh = addPlatform(x, y, z, w, h, d, 'gold');
+                mesh.userData.startPos = new THREE.Vector3(x, y, z);
+                mesh.userData.moveVector = moveVector;
+                mesh.userData.speed = speed;
+                mesh.userData.progress = 0;
+                movingPlats.push(mesh);
+            }
+
+            function addToken(x, y, z, sampleIndex) {
+                const group = new THREE.Group();
+                // Pixel Crystal Specimen Box
+                const geo = new THREE.BoxGeometry(0.75, 0.75, 0.75);
+                const mat = new THREE.MeshLambertMaterial({ color: 0xfacc15, emissive: 0xca8a04, emissiveIntensity: 0.4 });
+                const core = new THREE.Mesh(geo, mat);
+                group.add(core);
+
+                // Square Pixel Orbit Frame
+                const frameGeo = new THREE.BoxGeometry(1.1, 0.12, 1.1);
+                const frameMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+                const frame = new THREE.Mesh(frameGeo, frameMat);
+                group.add(frame);
+
+                group.position.set(x, y, z);
+                group.userData = { sampleIndex: sampleIndex };
+                scene.add(group);
+                tokens.push(group);
+            }
+
+            function addCheckpoint(x, y, z, index) {
+                // Retro Wooden Camp Archway
+                const archGroup = new THREE.Group();
+                const postMat = new THREE.MeshLambertMaterial({ color: 0xf59e0b, emissive: 0x92400e, emissiveIntensity: 0.3 });
+                const leftPost = new THREE.Mesh(new THREE.BoxGeometry(0.35, 3.2, 0.35), postMat);
+                leftPost.position.set(-1.6, 1.6, 0);
+                const rightPost = new THREE.Mesh(new THREE.BoxGeometry(0.35, 3.2, 0.35), postMat);
+                rightPost.position.set(1.6, 1.6, 0);
+                const topBeam = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.4, 0.45), postMat);
+                topBeam.position.set(0, 3.2, 0);
+
+                archGroup.add(leftPost, rightPost, topBeam);
+                archGroup.position.set(x, y, z);
+                scene.add(archGroup);
+                checkpoints.push({ position: new THREE.Vector3(x, y + 1, z), index: index, mesh: topBeam, postMat: postMat, activated: false });
+            }
+
+            /* AREA 01: MEADOW & AUTUMN WOODLAND */
+            addPlatform(0, 0, 0, 12, 2, 12, 'grass');
+            addCheckpoint(0, 1, 0, 0);
+
+            addPlatform(0, 0, -12, 4, 1.5, 6, 'wood');
+            addCrumblingPlatform(0, 0, -22, 3.2, 1, 3.2, 0.75);
+            addCrumblingPlatform(0, 0, -29, 3.2, 1, 3.2, 0.6);
+            addCrumblingPlatform(0, 1, -36, 3.2, 1, 3.2, 0.5);
+            addToken(0, 3, -29, 0); // Sample 0: 단풍잎벌레
+
+            addPlatform(0, 1, -47, 8, 2, 8, 'grass');
+            addCheckpoint(0, 2, -47, 1);
+
+            /* AREA 02: CANYON GATE & TRAP PARKOUR */
+            addPlatform(0, 2, -56, 5, 1.5, 5, 'stone');
+            canyonDoorSwitch = new THREE.Mesh(
+                new THREE.BoxGeometry(1.4, 0.3, 1.4),
+                new THREE.MeshLambertMaterial({ color: 0x0284c7, emissive: 0x0369a1, emissiveIntensity: 0.6 })
+            );
+            canyonDoorSwitch.position.set(0, 2.9, -56);
+            scene.add(canyonDoorSwitch);
+
+            canyonDoorMesh = addPlatform(0, 8, -64, 10, 10, 1, 'autumnWall', true);
+            addPlatform(0, 3, -72, 4, 1, 4, 'stone');
+
+            // Trap Switch & Floor
+            addPlatform(0, 3, -81, 3, 1, 3, 'wood');
+            canyonTrapSwitch = new THREE.Mesh(
+                new THREE.BoxGeometry(1.2, 0.25, 1.2),
+                new THREE.MeshLambertMaterial({ color: 0xef4444, emissive: 0xb91c1c, emissiveIntensity: 0.7 })
+            );
+            canyonTrapSwitch.position.set(0, 3.6, -81);
+            scene.add(canyonTrapSwitch);
+
+            canyonTrapFloor = addPlatform(0, 3, -90, 6, 0.6, 6, 'crumble');
+
+            // Safe Side Platforms & Bug Specimens
+            addPlatform(-5, 5, -81, 3.2, 1, 3.2, 'gold');
+            addPlatform(5, 7, -90, 3.2, 1, 3.2, 'gold');
+            addToken(-5, 7, -81, 1); // Sample 1: 장수풍뎅이
+            addToken(5, 9, -90, 2);  // Sample 2: 청개구리 & 게코
+
+            addPlatform(0, 8, -102, 8, 2, 8, 'grass');
+            addCheckpoint(0, 9, -102, 2);
+
+            /* AREA 03: LASER & WIND JET PARKOUR */
+            addMovingPlatform(0, 8, -114, 4, 1, 4, new THREE.Vector3(0, 4, 0), 1.8);
+            addPlatform(0, 12, -126, 8, 1.5, 8, 'stone');
+            
+            const pillar = new THREE.Mesh(
+                new THREE.BoxGeometry(0.9, 4, 0.9),
+                new THREE.MeshLambertMaterial({ color: 0x374151 })
+            );
+            pillar.position.set(0, 14.5, -126);
+            scene.add(pillar);
+
+            const beamMesh = new THREE.Mesh(
+                new THREE.BoxGeometry(7, 0.28, 0.28),
+                new THREE.MeshBasicMaterial({ color: 0xff2222 })
+            );
+            beamMesh.position.set(0, 13.8, -126);
+            scene.add(beamMesh);
+            beamMesh.userData = { isLaserBeam: true };
+
+            // Wind Jet Bounce Pad
+            const bouncePad = addPlatform(0, 12, -138, 4, 1, 4, 'gold');
+            bouncePad.userData.isBouncePad = true;
+            
+            const bounceSquare = new THREE.Mesh(
+                new THREE.BoxGeometry(2.2, 0.15, 2.2),
+                new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
+            );
+            bounceSquare.position.set(0, 12.6, -138);
+            scene.add(bounceSquare);
+
+            addToken(0, 18.5, -138, 3); // Sample 3: 잠자리 날개
+
+            /* AREA 04: FIRE ANT SMA GATE MECHANICS */
+            // SMA 유적 구간: 가열 스위치와 상승 발판으로 다음 구역에 연결
+            addPlatform(0, 13, -150, 7, 1.2, 7, 'stone');
+            const smaSwitch = new THREE.Mesh(
+                new THREE.BoxGeometry(1.2, 0.3, 1.2),
+                new THREE.MeshLambertMaterial({ color: 0xef4444, emissive: 0x7f1d1d, emissiveIntensity: 0.6 })
+            );
+            smaSwitch.position.set(0, 13.8, -150);
+            scene.add(smaSwitch);
+            addMovingPlatform(-3, 16, -163, 3.2, 0.9, 3.2, new THREE.Vector3(6, 2, 0), 1.5);
+            addPlatform(0, 18, -176, 8, 1.2, 8, 'autumnWall');
+            addCheckpoint(0, 19, -176, 3);
+            addToken(0, 21, -176, 4);
+
+            /* AREA 05: MAGNETIC FLOATING ROCKS - 부유 바위 도약 */
+            addPlatform(0, 18, -190, 5, 1, 5, 'crystal');
+            addMovingPlatform(-4, 20, -200, 3.2, 0.8, 3.2, new THREE.Vector3(8, 1, 0), 1.7);
+            addMovingPlatform(4, 22, -211, 3.2, 0.8, 3.2, new THREE.Vector3(-8, 1, 0), 1.9);
+            addPlatform(0, 24, -222, 7, 1.2, 7, 'crystal');
+            addCheckpoint(0, 25, -222, 4);
+            addToken(0, 27, -222, 5);
+            addCrumblingPlatform(-3, 25, -235, 2.8, 0.8, 2.8, 0.65);
+            addMovingPlatform(2, 27, -245, 3.2, 0.8, 3.2, new THREE.Vector3(0, 2, 0), 1.6);
+            addPlatform(0, 29, -258, 8, 1.2, 8, 'dirt');
+            addCheckpoint(0, 30, -258, 5);
+
+            /* AREA 06: SPIDER SILK BRIDGE & CAMP 6 */
+            addCrumblingPlatform(-3, 31, -274, 2.8, 1, 2.8, 0.5);
+            addCrumblingPlatform(3, 32, -282, 2.8, 1, 2.8, 0.5);
+            addCrumblingPlatform(0, 33, -290, 2.8, 1, 2.8, 0.45);
+            addToken(0, 35.2, -290, 6); // Sample 6: 무당거미 실크
+
+            addPlatform(0, 34, -303, 9, 2, 9, 'grass');
+            addCheckpoint(0, 35, -303, 6);
+
+            /* AREA 07: SKY HONEYBEE WINDMILL CANYON */
+            addMovingPlatform(-4, 35, -316, 3.6, 1, 3.6, new THREE.Vector3(8, 0, 0), 2.1);
+
+            // Rotating Honeybee Windmill Obstacle
+            const windmillHub = new THREE.Mesh(
+                new THREE.BoxGeometry(1.2, 1.2, 1.2),
+                new THREE.MeshLambertMaterial({ color: 0x78350f })
+            );
+            windmillHub.position.set(0, 39.5, -327);
+            scene.add(windmillHub);
+
+            const bladeMat = new THREE.MeshLambertMaterial({ color: 0xfef08a });
+            const blade1 = new THREE.Mesh(new THREE.BoxGeometry(9.5, 0.45, 0.45), bladeMat);
+            const blade2 = new THREE.Mesh(new THREE.BoxGeometry(0.45, 9.5, 0.45), bladeMat);
+            windmillHub.add(blade1, blade2);
+            windmillHub.userData = { isWindmill: true };
+
+            addPlatform(0, 36, -327, 6, 1.2, 6, 'honeycomb');
+            addMovingPlatform(4, 37, -339, 3.6, 1, 3.6, new THREE.Vector3(-8, 2, 0), 2.2);
+            addToken(0, 41.2, -339, 7); // Sample 7: 꿀벌 육각 벌집 구조체
+
+            addPlatform(0, 39, -352, 9, 2, 9, 'wood');
+            addCheckpoint(0, 40, -352, 7);
+
+            /* AREA 08: MANTIS LATTICE WALL-RUN & SKY SANCTUARY */
+            addPlatform(0, 40, -364, 4, 1.2, 6, 'stone');
+            // Dual Vertical Wall-Jump Panels
+            addPlatform(-4.2, 44.5, -374, 1, 8, 9, 'autumnWall', true);
+            addPlatform(4.2, 47.5, -385, 1, 8, 9, 'autumnWall', true);
+            addToken(0, 48.5, -380, 8); // Sample 8: 왕사마귀 위장 외골격
+
+            addCrumblingPlatform(0, 47, -396, 3.2, 1, 3.2, 0.55);
+
+            // 기존 부유 바위 구역의 끝은 클리어 지점이 아니라 다음 구역으로 이어지는 전이 발판
+            addPlatform(0, 48, -410, 12, 2, 12, 'gold');
+
+            addToken(4, 50.2, -406, 9); // Sample 9: 모르포 나비 광결정 인분
+
+            // Voxel Sanctuary Portal
+            const portal = new THREE.Mesh(
+                new THREE.BoxGeometry(3.2, 3.2, 3.2),
+                new THREE.MeshBasicMaterial({ color: 0xfef08a, wireframe: false })
+            );
+            const portalInner = new THREE.Mesh(
+                new THREE.BoxGeometry(2.2, 2.2, 3.6),
+                new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
+            );
+            portal.add(portalInner);
+            portal.position.set(0, 58, -526);
+            scene.add(portal);
+            portal.userData = { isPortal: true };
+
+            /* AREA 09: OBSIDIAN MAZE - 갈림길과 회전 함정 */
+            addPlatform(0, 48, -423, 8, 1.2, 8, 'crystal');
+            addCheckpoint(0, 49, -423, 8);
+            // 미로 바닥과 높이가 다른 벽을 배치해 시야를 차단하고 우회 경로를 유도
+            addPlatform(0, 48, -445, 22, 1, 28, 'stone');
+            addPlatform(-8, 50, -438, 1, 4, 14, 'crystal', true);
+            addPlatform(0, 50, -432, 1, 4, 10, 'crystal', true);
+            addPlatform(7, 50, -445, 1, 4, 16, 'crystal', true);
+            addPlatform(-3, 50, -451, 10, 4, 1, 'crystal', true);
+            addPlatform(3, 50, -459, 12, 4, 1, 'crystal', true);
+            addPlatform(-7, 50, -458, 1, 4, 8, 'crystal', true);
+            addMovingPlatform(-5, 51, -466, 3, 0.8, 3, new THREE.Vector3(10, 0, 0), 1.5);
+            addToken(7, 53, -452, 9);
+
+            // 바닥의 간헐 함정: 붉은 경고판과 접촉하면 위험 구역이 활성화
+            const mazeTrap = new THREE.Mesh(
+                new THREE.BoxGeometry(3.5, 0.22, 3.5),
+                new THREE.MeshBasicMaterial({ color: 0xef4444, emissive: 0x7f1d1d })
+            );
+            mazeTrap.position.set(2, 49.0, -447);
+            mazeTrap.userData = { isFloorTrap: true, active: false, timer: 0 };
+            scene.add(mazeTrap);
+
+            /* AREA 10: EMBER SKY - 부유 화염 몬스터와 붕괴 발판 */
+            addPlatform(0, 50, -477, 8, 1.2, 8, 'autumnWall');
+            addCheckpoint(0, 51, -477, 9);
+            addCrumblingPlatform(-4, 52, -488, 3, 0.8, 3, 0.7);
+            addMovingPlatform(2, 54, -496, 3.2, 0.8, 3.2, new THREE.Vector3(0, 3, 0), 1.7);
+            addCrumblingPlatform(5, 55, -504, 3, 0.8, 3, 0.55);
+
+            // 공중을 순찰하며 주기적으로 화염을 내뿜는 비행 몬스터
+            const fireMonster = new THREE.Group();
+            const body = new THREE.Mesh(
+                new THREE.BoxGeometry(1.8, 1.2, 1.2),
+                new THREE.MeshLambertMaterial({ color: 0x7c2d12, emissive: 0x431407 })
+            );
+            const eyeMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+            const eye1 = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.22, 0.12), eyeMat);
+            const eye2 = eye1.clone();
+            eye1.position.set(-0.42, 0.18, 0.62);
+            eye2.position.set(0.42, 0.18, 0.62);
+            const flame = new THREE.Mesh(
+                new THREE.ConeGeometry(0.72, 2.8, 5),
+                new THREE.MeshBasicMaterial({ color: 0xff5a1f, transparent: true, opacity: 0.82 })
+            );
+            flame.rotation.x = Math.PI / 2;
+            flame.position.set(0, -0.05, 1.9);
+            flame.visible = false;
+            fireMonster.add(body, eye1, eye2, flame);
+            fireMonster.position.set(0, 56, -493);
+            fireMonster.userData = { isFireMonster: true, baseX: 0, baseY: 56, phase: 0, flame, fireTimer: 0 };
+            scene.add(fireMonster);
+            fireMonsters.push(fireMonster);
+
+            // 최종 접근 발판과 포털
+            addPlatform(0, 56, -514, 10, 1.5, 10, 'gold');
+            addCheckpoint(0, 57, -514, 10);
+            const finalGoal = addPlatform(0, 56, -526, 14, 2, 14, 'honeycomb');
+            finalGoal.userData.isGoal = true;
+            addToken(4, 59, -522, 9);
+
+            // Pursuit Wall
+            chaseWall = new THREE.Mesh(
+                new THREE.BoxGeometry(30, 25, 2),
+                new THREE.MeshBasicMaterial({ color: 0xdc2626 })
+            );
+            chaseWall.position.set(0, 10, -125);
+            chaseWall.visible = false;
+            scene.add(chaseWall);
+        }
+
+        /* ==========================================
+           FIELDBOOK UI RENDERING (WITH PIXEL ART SPRITES)
+        ========================================== */
+        function renderFieldbookUI() {
+            const grid = document.getElementById('fieldbook-grid');
+            grid.innerHTML = '';
+
+            FIELDBOOK_DATA.forEach(item => {
+                const isUnlocked = unlockedSamples.has(item.id);
+                const card = document.createElement('div');
+                card.className = `fieldbook-card p-3 flex items-start gap-3 ${isUnlocked ? 'unlocked' : 'opacity-70'}`;
+
+                if (isUnlocked) {
+                    const spriteUrl = createPixelSpriteDataURL(item.sprite, item.palette);
+                    card.innerHTML = `
+                        <div class="w-14 h-14 bg-[#fff8eb] border-2 border-[#4a3520] flex items-center justify-center shrink-0 p-1">
+                            <img src="${spriteUrl}" alt="${item.name}" class="w-12 h-12 object-contain" />
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between gap-1">
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 pixel-amber-badge">${item.code}</span>
+                                <span class="text-[10px] text-[#3f7a38] font-bold"><i class="fa-solid fa-check mr-0.5"></i>채집 완료</span>
+                            </div>
+                            <h4 class="text-sm font-bold text-[#24170c] mt-1 truncate">${item.name}</h4>
+                            <p class="text-[11px] text-[#92400e] font-bold">${item.category} • ${item.location}</p>
+                            <p class="text-xs text-[#4a3520] mt-1 leading-snug">${item.desc}</p>
+                        </div>
+                    `;
+                } else {
+                    card.innerHTML = `
+                        <div class="w-14 h-14 bg-[#cbb382] border-2 border-[#593b1f] flex items-center justify-center shrink-0 text-xl text-[#593b1f]">
+                            <i class="fa-solid fa-question"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 bg-[#8c734b] text-white">${item.code}</span>
+                                <span class="text-[10px] text-[#6d4c2b]">미발견 표본</span>
+                            </div>
+                            <h4 class="text-sm font-bold text-[#593b1f] mt-1">??? (미기록 생물)</h4>
+                            <p class="text-[11px] text-[#6d4c2b] mt-0.5"><i class="fa-solid fa-location-dot mr-1"></i>서식지: ${item.location}</p>
+                            <p class="text-xs text-[#6d4c2b] mt-1 leading-snug">현장에서 황금 표본 상자를 획득하면 도감 그림이 해금됩니다.</p>
+                        </div>
+                    `;
+                }
+                grid.appendChild(card);
+            });
+
+            const count = unlockedSamples.size;
+            document.getElementById('fieldbook-count-text').innerText = `${count} / 10 종`;
+            document.getElementById('fieldbook-progress-bar').style.width = `${(count / 10) * 100}%`;
+        }
+
+        function updateQuestTracker(cpIdx) {
+            const q = QUEST_STAGES[Math.min(cpIdx, QUEST_STAGES.length - 1)];
+            document.getElementById('quest-title').innerText = q.title;
+            document.getElementById('quest-desc').innerText = q.desc;
+        }
+
+        /* ==========================================
+           CONTROLS & INTERACTIONS
+        ========================================== */
+        function setupControls() {
+            window.addEventListener('keydown', (e) => {
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    if (!e.repeat) queueJumpInput();
+                }
+                keys[e.code] = true;
+                if (e.code === 'KeyE' || e.code === 'AltLeft') performDash();
+                if (e.code === 'KeyC' || e.code === 'ControlLeft') performSlideOrDive();
+                if (e.code === 'KeyR') restartGameCompletely();
+                if (e.code === 'KeyB') toggleFieldbookModal();
+            });
+
+            window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+            const container = document.getElementById('game-container');
+
+            // Mouse Camera Rotation
+            container.addEventListener('mousedown', (e) => {
+                if (!isGameRunning) return;
+                isMouseDown = true;
+                mouseLastX = e.clientX;
+                mouseLastY = e.clientY;
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (isMouseDown && isGameRunning) {
+                    const dx = e.clientX - mouseLastX;
+                    const dy = e.clientY - mouseLastY;
+                    player.rotationY -= dx * 0.0042;
+                    player.pitch -= dy * 0.003;
+                    player.pitch = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, player.pitch));
+                    mouseLastX = e.clientX;
+                    mouseLastY = e.clientY;
+                }
+            });
+
+            window.addEventListener('mouseup', () => { isMouseDown = false; });
+
+            // Mobile Touch Look Rotation
+            container.addEventListener('touchstart', (e) => {
+                if (!isGameRunning) return;
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const touch = e.changedTouches[i];
+                    if (touch.clientX > window.innerWidth / 2 && touchLookId === null) {
+                        touchLookId = touch.identifier;
+                        touchLookLastX = touch.clientX;
+                        touchLookLastY = touch.clientY;
+                        break;
+                    }
+                }
+            }, { passive: true });
+
+            container.addEventListener('touchmove', (e) => {
+                if (touchLookId === null || !isGameRunning) return;
+                for (let i = 0; i < e.touches.length; i++) {
+                    const touch = e.touches[i];
+                    if (touch.identifier === touchLookId) {
+                        const dx = touch.clientX - touchLookLastX;
+                        const dy = touch.clientY - touchLookLastY;
+                        player.rotationY -= dx * 0.005;
+                        player.pitch -= dy * 0.004;
+                        player.pitch = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, player.pitch));
+                        touchLookLastX = touch.clientX;
+                        touchLookLastY = touch.clientY;
+                        break;
+                    }
+                }
+            }, { passive: true });
+
+            const resetTouchLook = (e) => {
+                if (touchLookId === null) return;
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    if (e.changedTouches[i].identifier === touchLookId) {
+                        touchLookId = null;
+                        break;
+                    }
+                }
+            };
+            container.addEventListener('touchend', resetTouchLook);
+            container.addEventListener('touchcancel', resetTouchLook);
+
+            // Left Virtual Joystick
+            const joystickZone = document.getElementById('joystick-zone');
+            const joystickKnob = document.getElementById('joystick-knob');
+            let joystickTouchId = null;
+
+            joystickZone.addEventListener('touchstart', (e) => {
+                const touch = e.changedTouches[0];
+                joystickTouchId = touch.identifier;
+                updateJoystick(touch);
+            }, { passive: true });
+
+            window.addEventListener('touchmove', (e) => {
+                if (joystickTouchId === null) return;
+                for (let i = 0; i < e.touches.length; i++) {
+                    if (e.touches[i].identifier === joystickTouchId) {
+                        updateJoystick(e.touches[i]);
+                        break;
+                    }
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchend', (e) => {
+                if (joystickTouchId === null) return;
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    if (e.changedTouches[i].identifier === joystickTouchId) {
+                        joystickTouchId = null;
+                        touchInput.x = 0;
+                        touchInput.y = 0;
+                        touchInput.isActive = false;
+                        joystickKnob.style.transform = `translate(0px, 0px)`;
+                        break;
+                    }
+                }
+            });
+
+            function updateJoystick(touch) {
+                const rect = joystickZone.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+
+                let dx = touch.clientX - centerX;
+                let dy = touch.clientY - centerY;
+                const maxLen = rect.width / 2;
+                const dist = Math.hypot(dx, dy);
+
+                if (dist > maxLen) {
+                    dx = (dx / dist) * maxLen;
+                    dy = (dy / dist) * maxLen;
+                }
+
+                joystickKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+                touchInput.x = (dx / maxLen) * 0.85;
+                touchInput.y = (dy / maxLen) * 0.85;
+                touchInput.isActive = true;
+            }
+
+            // Action Buttons
+            document.getElementById('btn-jump').addEventListener('touchstart', (e) => { e.preventDefault(); queueJumpInput(); });
+            document.getElementById('btn-jump').addEventListener('mousedown', (e) => { e.preventDefault(); queueJumpInput(); });
+            document.getElementById('btn-dash').addEventListener('touchstart', (e) => { e.preventDefault(); performDash(); });
+            document.getElementById('btn-slide').addEventListener('click', (e) => { e.preventDefault(); performSlideOrDive(); });
+            document.getElementById('btn-sprint').addEventListener('click', (e) => { e.preventDefault(); activateSprintBoost(); });
+            document.getElementById('btn-dive').addEventListener('touchstart', (e) => { e.preventDefault(); performDive(); });
+
+            // Customizer
+            document.querySelectorAll('#color-selector button').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('#color-selector button').forEach(b => b.classList.remove('ring-2', 'ring-amber-500', 'scale-110'));
+                    e.target.classList.add('ring-2', 'ring-amber-500', 'scale-110');
+                    playerCustom.suitColor = parseInt(e.target.getAttribute('data-color'));
+                    if (player.mesh) createPlayerMesh();
+                });
+            });
+
+            document.querySelectorAll('#visor-selector button').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('#visor-selector button').forEach(b => b.classList.remove('ring-2', 'ring-amber-600', 'scale-110'));
+                    e.target.classList.add('ring-2', 'ring-amber-600', 'scale-110');
+                    playerCustom.visorColor = parseInt(e.target.getAttribute('data-visor'));
+                    playerCustom.capColor = playerCustom.visorColor;
+                    if (player.mesh) createPlayerMesh();
+                });
+            });
+
+            // Character selection: apply a complete visual preset and rebuild the 3D avatar.
+            document.querySelectorAll('#character-selector [data-character]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const key = btn.getAttribute('data-character');
+                    const preset = CHARACTER_PRESETS[key];
+                    if (!preset) return;
+                    playerCustom.character = key;
+                    playerCustom.suitColor = preset.suitColor;
+                    playerCustom.capColor = preset.capColor;
+                    playerCustom.visorColor = preset.accent;
+                    document.querySelectorAll('#character-selector [data-character]').forEach(card => {
+                        card.classList.remove('selected-character','border-[#9a5b18]','bg-[#fff1cf]');
+                        card.classList.add('border-[#bfa574]','bg-[#fff8eb]');
+                        card.setAttribute('aria-pressed', 'false');
+                    });
+                    btn.classList.add('selected-character','border-[#9a5b18]','bg-[#fff1cf]');
+                    btn.classList.remove('border-[#bfa574]','bg-[#fff8eb]');
+                    btn.setAttribute('aria-pressed', 'true');
+                    document.querySelectorAll('#color-selector button').forEach(b => b.classList.remove('ring-2','ring-amber-500','scale-110'));
+                    document.querySelectorAll('#visor-selector button').forEach(b => b.classList.remove('ring-2','ring-amber-600','scale-110'));
+                    if (player.mesh) createPlayerMesh();
+                });
+            });
+
+            // Fieldbook Controls
+            document.getElementById('btn-open-fieldbook').addEventListener('click', toggleFieldbookModal);
+            document.getElementById('btn-close-fieldbook').addEventListener('click', toggleFieldbookModal);
+            document.getElementById('btn-clear-fieldbook').addEventListener('click', () => {
+                renderFieldbookUI();
+                document.getElementById('fieldbook-modal').classList.remove('hidden');
+            });
+
+            // Pixel Resolution Toggle
+            document.getElementById('btn-pixel-toggle').addEventListener('click', () => {
+                isLowResPixel = !isLowResPixel;
+                applyPixelResolution();
+                showToast(isLowResPixel ? "도트 그래픽 모드: 16비트 레트로" : "도트 그래픽 모드: HD 픽셀");
+            });
+
+            // Sound Toggle
+            document.getElementById('btn-sound-toggle').addEventListener('click', () => {
+                initAudio();
+                soundEnabled = !soundEnabled;
+                const icon = document.getElementById('sound-icon');
+                icon.className = soundEnabled ? 'fa-solid fa-volume-high text-base' : 'fa-solid fa-volume-xmark text-base text-stone-400';
+                showToast(soundEnabled ? "칩튠 효과음 ON" : "효과음 OFF");
+            });
+
+            // Menu Buttons
+            document.getElementById('btn-quick-restart').addEventListener('click', restartGameCompletely);
+            document.getElementById('btn-start-game').addEventListener('click', () => {
+                initAudio();
+                startGame();
+            });
+            document.getElementById('btn-restart-game').addEventListener('click', respawnPlayer);
+            document.getElementById('btn-retry-clear').addEventListener('click', startGame);
+
+            // Dev Console
+            let isDevAuthenticated = false;
+            const devModal = document.getElementById('dev-modal');
+            document.getElementById('btn-dev-mode').addEventListener('click', () => devModal.classList.remove('hidden'));
+            document.getElementById('btn-close-dev').addEventListener('click', () => devModal.classList.add('hidden'));
+
+            document.getElementById('btn-dev-login').addEventListener('click', () => {
+                const pwd = document.getElementById('dev-password-input').value;
+                const errMsg = document.getElementById('dev-error-msg');
+                if (pwd === 'yves8767') {
+                    isDevAuthenticated = true;
+                    errMsg.classList.add('hidden');
+                    document.getElementById('dev-auth-section').classList.add('hidden');
+                    document.getElementById('dev-teleport-section').classList.remove('hidden');
+                } else {
+                    errMsg.classList.remove('hidden');
+                }
+            });
+
+            document.querySelectorAll('.btn-tp').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (!isDevAuthenticated) return;
+                    const target = e.target.getAttribute('data-cp');
+                    devModal.classList.add('hidden');
+                    teleportTo(target);
+                });
+            });
+        }
+
+        function toggleFieldbookModal() {
+            const modal = document.getElementById('fieldbook-modal');
+            const isHidden = modal.classList.contains('hidden');
+            if (isHidden) {
+                renderFieldbookUI();
+                modal.classList.remove('hidden');
+                document.getElementById('fieldbook-dot').classList.add('hidden');
+                document.getElementById('btn-open-fieldbook').classList.remove('new-entry-badge');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        /* ==========================================
+           PARKOUR ACTIONS (WITH COYOTE TIME & JUMP BUFFER)
+        ========================================== */
+        function queueJumpInput() {
+            if (!isGameRunning) return;
+            player.jumpBufferTimer = CONFIG.jumpBufferTime;
+            tryExecuteBufferedJump();
+        }
+
+        function tryExecuteBufferedJump() {
+            if (!isGameRunning || player.jumpBufferTimer <= 0) return false;
+
+            // 1. 벽타기 도약 우선 처리
+            if (player.isTouchingWall && player.wallJumpCooldown <= 0) {
+                player.velocity.y = CONFIG.wallJumpForce;
+                const pushDir = player.wallNormal.clone().multiplyScalar(7.5);
+                player.velocity.x = pushDir.x;
+                player.velocity.z = -8.2;
+                player.canDoubleJump = true;
+                player.wallJumpCooldown = 0.2;
+                player.coyoteTimer = 0;
+                player.jumpBufferTimer = 0;
+                playSfx('wallJump');
+                showToast("게코 벽타기 도약!");
+                return true;
+            }
+
+            // 2. 지상 점프 또는 넉넉한 코요테 타임(0.28초) 내 점프
+            if (player.isGrounded || player.coyoteTimer > 0) {
+                const wasCoyote = !player.isGrounded && player.coyoteTimer > 0;
+                player.velocity.y = CONFIG.jumpForce;
+                player.isGrounded = false;
+                player.coyoteTimer = 0;
+                player.jumpBufferTimer = 0;
+                player.canDoubleJump = true;
+                // 지상에서 활공을 미리 입력했다면 전방 점프와 동시에 활공 상태로 전환.
+                if (player.glideQueued) {
+                    player.isGliding = true;
+                    player.glideQueued = false;
+                    player.velocity.y = Math.max(player.velocity.y, 1.8);
+                    const glideForward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), player.rotationY);
+                    player.velocity.x = glideForward.x * player.glideSpeed;
+                    player.velocity.z = glideForward.z * player.glideSpeed;
+                }
+                playSfx('jump');
+                if (wasCoyote) showToast("코요테 점프!");
+                return true;
+            }
+
+            // 3. 공중 2단 점프 (점프 선입력 버퍼가 막 시작된 시점에만 발동)
+            if (player.canDoubleJump && player.jumpBufferTimer >= CONFIG.jumpBufferTime - 0.035) {
+                player.velocity.y = CONFIG.jumpForce * 0.95;
+                player.canDoubleJump = false;
+                player.jumpBufferTimer = 0;
+                playSfx('doubleJump');
+                showToast("2단 점프!");
+                return true;
+            }
+
+            return false;
+        }
+
+        function performDash() {
+            if (!isGameRunning || player.stamina < CONFIG.staminaDashCost || player.dashCooldown > 0) return;
+            player.stamina -= CONFIG.staminaDashCost;
+            player.staminaRegenTimer = CONFIG.staminaRegenDelay;
+            player.dashCooldown = 0.45;
+
+            const dashDir = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), player.rotationY);
+            player.velocity.x = dashDir.x * CONFIG.dashForce;
+            player.velocity.z = dashDir.z * CONFIG.dashForce;
+            player.velocity.y = 2.6;
+            player.dashVisualTimer = 0.42;
+            playSfx('dash');
+            showToast("질풍 대시!");
+        }
+
+        function activateSprintBoost() {
+            if (!isGameRunning) return;
+            player.sprintBoostTimer = 10.0;
+            player.potionAnimTimer = 0.9;
+            playSfx('dash');
+            showToast("질주 가속! 10초 동안 속도 +15%");
+        }
+
+        function performSlideOrDive() {
+            if (!isGameRunning) return;
+
+            // 슬라이드 버튼은 활공 모드의 ON/OFF 토글로 동작한다.
+            if (player.isGliding || player.glideQueued) {
+                player.isGliding = false;
+                player.glideQueued = false;
+                showToast("활공 모드 해제!");
+                return;
+            }
+
+            // 지상에서 켜도 모드를 유지하고, 점프하는 순간 활공이 적용된다.
+            player.isGliding = true;
+            if (player.isGrounded) {
+                player.glideQueued = true;
+                player.isSliding = false;
+                showToast("활공 모드 ON · 점프하면 활공!");
+            } else {
+                player.glideQueued = false;
+                player.velocity.y = Math.max(player.velocity.y, -1.2);
+                const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(
+                    new THREE.Vector3(0, 1, 0), player.rotationY
+                );
+                player.velocity.x = forward.x * player.glideSpeed;
+                player.velocity.z = forward.z * player.glideSpeed;
+                showToast("활공 모드 ON!");
+            }
+        }
+
+        function performDive() {
+            if (!player.isGrounded) {
+                player.velocity.y = -CONFIG.gravity * 1.3;
+                showToast("수직 급강하!");
+            }
+        }
+
+        /* ==========================================
+           PHYSICS & COLLISIONS
+        ========================================== */
+        function updatePhysics(delta) {
+            if (!isGameRunning) return;
+
+            gameTime += delta;
+            if (player.dashCooldown > 0) player.dashCooldown -= delta;
+            if (player.wallJumpCooldown > 0) player.wallJumpCooldown -= delta;
+            if (player.sprintBoostTimer > 0) player.sprintBoostTimer = Math.max(0, player.sprintBoostTimer - delta);
+            if (player.dashVisualTimer > 0) player.dashVisualTimer = Math.max(0, player.dashVisualTimer - delta);
+            if (player.potionAnimTimer > 0) player.potionAnimTimer = Math.max(0, player.potionAnimTimer - delta);
+
+            // 코요테 타임 및 점프 버퍼 타이머 갱신
+            if (player.isGrounded) {
+                player.coyoteTimer = CONFIG.coyoteTime;
+            } else if (player.coyoteTimer > 0) {
+                player.coyoteTimer = Math.max(0, player.coyoteTimer - delta);
+            }
+
+            if (player.jumpBufferTimer > 0) {
+                if (!tryExecuteBufferedJump()) {
+                    player.jumpBufferTimer = Math.max(0, player.jumpBufferTimer - delta);
+                }
+            }
+
+            if (player.slideTimer > 0) {
+                player.slideTimer -= delta;
+                if (player.slideTimer <= 0) player.isSliding = false;
+            }
+
+            // 대시 직후에는 회복을 잠시 멈춰 연속 대시를 제한한다.
+            if (player.staminaRegenTimer > 0) {
+                player.staminaRegenTimer = Math.max(0, player.staminaRegenTimer - delta);
+            } else if (player.stamina < CONFIG.maxStamina) {
+                player.stamina = Math.min(
+                    CONFIG.maxStamina,
+                    player.stamina + CONFIG.staminaRegen * delta
+                );
+            }
+
+            let moveX = 0, moveZ = 0;
+            if (keys['KeyW'] || keys['ArrowUp']) moveZ -= 1;
+            if (keys['KeyS'] || keys['ArrowDown']) moveZ += 1;
+            if (keys['KeyA'] || keys['ArrowLeft']) moveX -= 1;
+            if (keys['KeyD'] || keys['ArrowRight']) moveX += 1;
+
+            if (touchInput.isActive) {
+                moveX = touchInput.x;
+                moveZ = touchInput.y;
+            }
+
+            player.isSprinting = (keys['ShiftLeft'] || keys['ShiftRight']) && moveZ < 0;
+            const baseSpeed = player.isSliding ? CONFIG.sprintSpeed * 1.25 : (player.isSprinting ? CONFIG.sprintSpeed : CONFIG.walkSpeed);
+            const currentSpeed = baseSpeed * (player.sprintBoostTimer > 0 ? 1.15 : 1);
+
+            const moveDir = new THREE.Vector3(moveX, 0, moveZ);
+            if (moveDir.lengthSq() > 0) moveDir.normalize();
+            moveDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), player.rotationY);
+
+            if (player.isTouchingWall && !player.isGrounded) {
+                player.velocity.y = Math.max(player.velocity.y, -4.0);
+                player.velocity.x = THREE.MathUtils.lerp(player.velocity.x, moveDir.x * currentSpeed, CONFIG.airControl * delta * 8);
+                player.velocity.z = THREE.MathUtils.lerp(player.velocity.z, moveDir.z * currentSpeed, CONFIG.airControl * delta * 8);
+            } else if (player.isGrounded) {
+                player.velocity.x = moveDir.x * currentSpeed;
+                player.velocity.z = moveDir.z * currentSpeed;
+            } else {
+                player.velocity.x = THREE.MathUtils.lerp(player.velocity.x, moveDir.x * currentSpeed, CONFIG.airControl * delta * 10);
+                player.velocity.z = THREE.MathUtils.lerp(player.velocity.z, moveDir.z * currentSpeed, CONFIG.airControl * delta * 10);
+                player.velocity.y -= CONFIG.gravity * delta;
+            }
+
+            // 활공은 점프·대시 등 공중 동작 뒤에도 유지되며, 수평 추진과 완만한 하강을 별도로 적용.
+            if (!player.isGrounded && player.isGliding && !player.isTouchingWall) {
+                const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), player.rotationY);
+                const glideTarget = player.glideSpeed * (player.isSprinting ? 1.12 : 1);
+                player.velocity.x = THREE.MathUtils.lerp(player.velocity.x, forward.x * glideTarget + moveDir.x * 2.2, Math.min(1, delta * 3.5));
+                player.velocity.z = THREE.MathUtils.lerp(player.velocity.z, forward.z * glideTarget + moveDir.z * 2.2, Math.min(1, delta * 3.5));
+                player.velocity.y = Math.max(player.velocity.y - CONFIG.gravity * 0.10 * delta, -2.4);
+            }
+
+            player.position.x += (player.velocity.x + (player.isGrounded ? player.groundVelocity.x : 0)) * delta;
+            player.position.y += player.velocity.y * delta;
+            player.position.z += (player.velocity.z + (player.isGrounded ? player.groundVelocity.z : 0)) * delta;
+
+            checkPlatformCollisions(delta);
+
+            // 충돌 판정 직후 착지했다면 선입력된 점프 즉시 실행
+            if (player.isGrounded && player.jumpBufferTimer > 0) {
+                tryExecuteBufferedJump();
+            }
+
+            updateCanyonMechanics(delta);
+            updateSMAGate(delta);
+            updateDynamicTraps(delta);
+            checkCollectibles();
+
+            if (player.position.y < -20) onPlayerDie();
+
+            if (player.mesh) {
+                player.mesh.position.copy(player.position);
+                player.mesh.rotation.y = player.rotationY;
+                player.mesh.rotation.x = player.isSliding ? 0.35 : (player.isGliding ? 0.10 : (player.isSprinting ? 0.12 : 0));
+
+                // 이동 속도에 맞춰 발걸음 주기를 갱신해 정지 상태에서는 자연스럽게 멈춘다.
+                const horizontalSpeed = Math.hypot(player.velocity.x, player.velocity.z);
+                const movingOnGround = player.isGrounded && horizontalSpeed > 0.45 && !player.isSliding;
+                if (movingOnGround) {
+                    const strideRate = player.isSprinting ? 15.5 : 10.5;
+                    player.walkCycle += delta * strideRate * Math.min(1.35, horizontalSpeed / Math.max(CONFIG.walkSpeed, 0.1));
+                }
+                const stride = movingOnGround ? Math.sin(player.walkCycle) * (player.isSprinting ? 0.78 : 0.56) : 0;
+                const airPose = !player.isGrounded && !player.isGliding;
+                if (player.leftLegPivot && player.rightLegPivot) {
+                    const targetLeft = player.isGliding ? -0.18 : (airPose ? -0.42 : stride);
+                    const targetRight = player.isGliding ? -0.18 : (airPose ? 0.30 : -stride);
+                    player.leftLegPivot.rotation.x = THREE.MathUtils.lerp(player.leftLegPivot.rotation.x, targetLeft, Math.min(1, delta * 12));
+                    player.rightLegPivot.rotation.x = THREE.MathUtils.lerp(player.rightLegPivot.rotation.x, targetRight, Math.min(1, delta * 12));
+                }
+                if (player.glideLeftArm && player.glideRightArm) {
+                    const armSwing = movingOnGround ? stride * 0.72 : 0;
+                    const armPose = player.isGliding ? 1.18 : (airPose ? -0.48 : armSwing);
+                    player.glideLeftArm.rotation.z = THREE.MathUtils.lerp(player.glideLeftArm.rotation.z, player.isGliding ? 0.82 : 0, Math.min(1, delta * 10));
+                    player.glideRightArm.rotation.z = THREE.MathUtils.lerp(player.glideRightArm.rotation.z, player.isGliding ? -0.82 : 0, Math.min(1, delta * 10));
+                    player.glideLeftArm.rotation.x = THREE.MathUtils.lerp(player.glideLeftArm.rotation.x, armPose + (movingOnGround ? -armSwing : 0), Math.min(1, delta * 12));
+                    player.glideRightArm.rotation.x = THREE.MathUtils.lerp(player.glideRightArm.rotation.x, (player.isGliding ? 1.18 : (airPose ? -0.48 : 0)) + (movingOnGround ? armSwing : 0), Math.min(1, delta * 12));
+                }
+                if (player.parachuteRig) {
+                    player.parachuteRig.visible = player.isGliding;
+                    if (player.isGliding) {
+                        const sway = Math.sin(performance.now() * 0.0028) * 0.10;
+                        player.parachuteRig.rotation.z = sway;
+                        player.parachuteRig.rotation.x = Math.sin(performance.now() * 0.0019) * 0.035;
+                        player.parachuteRig.scale.set(1 + Math.sin(performance.now() * 0.004) * 0.025, 1, 1);
+                    } else {
+                        player.parachuteRig.rotation.set(0, 0, 0);
+                        player.parachuteRig.scale.set(1, 1, 1);
+                    }
+                }
+                if (player.glideLeftArm && player.glideRightArm) {
+                    const armPose = player.isGliding ? 0.82 : 0;
+                    player.glideLeftArm.rotation.z = armPose;
+                    player.glideRightArm.rotation.z = -armPose;
+                }
+
+                // 대시 불꽃은 캐릭터 뒤쪽에서 빠르게 흔들리며 사라짐
+                if (player.dashFlameRig) {
+                    const dashActive = player.dashVisualTimer > 0;
+                    player.dashFlameRig.visible = dashActive;
+                    if (dashActive) {
+                        const t = performance.now() * 0.025;
+                        player.dashFlameRig.scale.set(
+                            0.85 + Math.sin(t) * 0.18,
+                            0.85 + Math.cos(t * 1.3) * 0.20,
+                            0.85 + Math.sin(t * 0.8) * 0.18
+                        );
+                        player.dashFlameRig.rotation.y = Math.sin(t * 0.7) * 0.10;
+                    }
+                }
+
+                // 포션을 입 쪽으로 들어 올렸다가 내리고, 버프 중에는 몸 전체가 빛남
+                if (player.potionRig) {
+                    const drinking = player.potionAnimTimer > 0;
+                    player.potionRig.visible = drinking;
+                    if (drinking) {
+                        const progress = 1 - player.potionAnimTimer / 0.9;
+                        const lift = Math.sin(Math.min(1, progress * 1.5) * Math.PI / 2);
+                        player.potionRig.position.set(0.48, 1.02 + lift * 0.62, -0.30 - lift * 0.20);
+                        player.potionRig.rotation.set(-lift * 0.72, 0, -0.18 - lift * 0.35);
+                    } else {
+                        player.potionRig.position.set(0.48, 1.02, -0.30);
+                        player.potionRig.rotation.set(0, 0, 0);
+                    }
+                }
+                if (player.sprintAura) {
+                    const auraActive = player.sprintBoostTimer > 0;
+                    player.sprintAura.visible = auraActive;
+                    if (auraActive) {
+                        const pulse = 0.14 + (Math.sin(performance.now() * 0.009) + 1) * 0.055;
+                        player.sprintAura.material.opacity = pulse;
+                        const scale = 1 + Math.sin(performance.now() * 0.006) * 0.035;
+                        player.sprintAura.scale.setScalar(scale);
+                    }
+                }
+            }
+
+            const targetCamPos = player.position.clone().add(cameraOffset.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), player.rotationY));
+            camera.position.lerp(targetCamPos, 0.22);
+            camera.lookAt(player.position.clone().add(new THREE.Vector3(0, 1.25, 0)));
+        }
+
+        function checkPlatformCollisions(delta = 0.016) {
+            const wasGrounded = player.isGrounded;
+            player.isGrounded = false;
+            player.isTouchingWall = false;
+            player.groundVelocity.set(0, 0, 0);
+
+            const playerBox = new THREE.Box3().setFromCenterAndSize(
+                player.position.clone().add(new THREE.Vector3(0, player.height / 2, 0)),
+                new THREE.Vector3(player.radius * 2.2, player.height + 0.08, player.radius * 2.2)
+            );
+
+            for (let plat of platforms) {
+                if (!plat.visible) continue;
+                const platBox = new THREE.Box3().setFromObject(plat);
+                if (playerBox.intersectsBox(platBox)) {
+                    if (plat.userData.isGoal) {
+                        onGameClear();
+                        return;
+                    }
+
+                    if (plat.userData.isBouncePad && player.velocity.y <= 0) {
+                        player.velocity.y = 22.5;
+                        player.canDoubleJump = true;
+                        player.coyoteTimer = 0;
+                        playSfx('bounce');
+                        showToast("잠자리 바람 점프대 가동!");
+                        continue;
+                    }
+
+                    const prevY = player.position.y - player.velocity.y * delta;
+                    // 이동 중 미세한 프레임 오차로 바닥 판정이 풀리지 않도록 여유 오차(0.55) 적용
+                    if (prevY >= platBox.max.y - 0.55 && player.velocity.y <= 0.5) {
+                        player.position.y = platBox.max.y;
+                        player.velocity.y = 0;
+                        player.isGrounded = true;
+                        player.canDoubleJump = true;
+                        player.coyoteTimer = CONFIG.coyoteTime;
+
+                        if (plat.userData.frameDeltaPos) {
+                            player.groundVelocity.copy(plat.userData.frameDeltaPos).divideScalar(Math.max(delta, 0.001));
+                        }
+
+                        if (plat.userData.isCrumbling && !plat.userData.triggered) {
+                            plat.userData.triggered = true;
+                        }
+                    } else if (plat.userData.isWall && !player.isGrounded) {
+                        player.isTouchingWall = true;
+                        const pCenter = player.position.clone();
+                        const wCenter = plat.position.clone();
+                        const diff = pCenter.sub(wCenter);
+                        if (Math.abs(diff.x) > Math.abs(diff.z)) {
+                            player.wallNormal.set(Math.sign(diff.x), 0, 0);
+                        } else {
+                            player.wallNormal.set(0, 0, Math.sign(diff.z));
+                        }
+                    }
+                }
+            }
+
+            // 방금 발판 끝에서 벗어났다면 코요테 타임 시작
+            if (wasGrounded && !player.isGrounded && player.velocity.y <= 0) {
+                player.coyoteTimer = CONFIG.coyoteTime;
+            }
+
+            if (canyonDoorSwitch && player.position.distanceTo(canyonDoorSwitch.position) < 1.6 && !canyonDoorState.isOpen) {
+                canyonDoorState.isOpening = true;
+                canyonDoorSwitch.material.emissiveIntensity = 1.4;
+                playSfx('checkpoint');
+                showToast("성문 스위치 작동! 협곡 문이 열립니다.");
+            }
+
+            if (canyonTrapSwitch && player.position.distanceTo(canyonTrapSwitch.position) < 1.5 && !canyonTrapState.isTriggered) {
+                canyonTrapState.isTriggered = true;
+                canyonTrapSwitch.position.y -= 0.1;
+                showToast("주의! 함정 스위치를 밟아 다리가 무너집니다!");
+            }
+
+            if (smaSwitchMesh && player.position.distanceTo(smaSwitchMesh.position) < 2.0 && !smaGateState.isOpen) {
+                smaGateState.isHeating = true;
+                showToast("불개미 열반응 스위치 작동! 유적 문 개방 중...");
+            }
+        }
+
+        function updateCanyonMechanics(delta) {
+            if (canyonDoorState.isOpening && !canyonDoorState.isOpen) {
+                if (canyonDoorMesh.position.y < 16) {
+                    canyonDoorMesh.position.y += delta * 8;
+                } else {
+                    canyonDoorState.isOpen = true;
+                }
+            }
+
+            if (canyonTrapState.isTriggered && canyonTrapFloor) {
+                if (canyonTrapState.rotAngle < Math.PI / 2) {
+                    canyonTrapState.rotAngle += delta * 4;
+                    canyonTrapFloor.rotation.x = canyonTrapState.rotAngle;
+                    canyonTrapFloor.position.y -= delta * 5;
+                }
+            }
+        }
+
+        function updateSMAGate(delta) {
+            if (smaGateState.isHeating && !smaGateState.isOpen) {
+                smaGateState.heatProgress += delta * 1.5;
+                smaSwitchMesh.material.emissiveIntensity = 0.4 + smaGateState.heatProgress * 0.9;
+                smaCoilMesh.rotation.z += delta * 6;
+
+                if (smaGateState.heatProgress >= 1.0) {
+                    smaGateState.isOpen = true;
+                    playSfx('checkpoint');
+                    showToast("유적 격벽이 완전히 열렸습니다!");
+                }
+            }
+
+            if (smaGateState.isOpen && smaGateDoor.position.y < 32) {
+                smaGateDoor.position.y += delta * 8;
+            }
+        }
+
+        function updateDynamicTraps(delta) {
+            scene.traverse((obj) => {
+                if (obj.userData && obj.userData.isLaserBeam) {
+                    obj.rotation.y += delta * 2.1;
+                    const dx = player.position.x - obj.position.x;
+                    const dz = player.position.z - obj.position.z;
+                    const dist = Math.hypot(dx, dz);
+                    if (dist < 3.4 && Math.abs(player.position.y - obj.position.y) < 0.75) {
+                        const beamAngle = obj.rotation.y;
+                        const playerAngle = Math.atan2(-dz, dx);
+                        const angleDiff = Math.abs(Math.sin(beamAngle - playerAngle));
+                        if (angleDiff < 0.18) {
+                            onPlayerDie();
+                        }
+                    }
+                }
+                if (obj.userData && obj.userData.isWindmill) {
+                    obj.rotation.z += delta * 2.2;
+                    const dx = player.position.x - obj.position.x;
+                    const dy = (player.position.y + 0.9) - obj.position.y;
+                    const dz = Math.abs(player.position.z - obj.position.z);
+                    if (dz < 0.8 && Math.hypot(dx, dy) < 4.6) {
+                        const bladeAngle = obj.rotation.z;
+                        const playerAngle = Math.atan2(dy, dx);
+                        const hitCheck = Math.abs(Math.sin((bladeAngle - playerAngle) * 2));
+                        if (hitCheck < 0.22) {
+                            player.velocity.y = 8;
+                            player.velocity.z = 11;
+                            playSfx('die');
+                            showToast("풍차 날개에 튕겨났습니다!");
+                        }
+                    }
+                }
+                if (obj.userData && obj.userData.isPortal) {
+                    obj.rotation.y += delta * 1.4;
+                }
+                if (obj.userData && obj.userData.isFloorTrap) {
+                    obj.userData.timer += delta;
+                    obj.material.color.setHex(Math.sin(obj.userData.timer * 4) > 0 ? 0xef4444 : 0x7f1d1d);
+                    const nearTrap = Math.abs(player.position.x - obj.position.x) < 2.0 &&
+                                     Math.abs(player.position.z - obj.position.z) < 2.0 &&
+                                     Math.abs(player.position.y - obj.position.y) < 2.3;
+                    if (nearTrap && Math.sin(obj.userData.timer * 4) > 0.45) onPlayerDie();
+                }
+            });
+
+            // Gentle Bobbing Animation for Floating Sky Islands
+            for (let island of floatingIslands) {
+                island.position.y = island.userData.baseY + Math.sin(gameTime * island.userData.speed + island.userData.phase) * 0.45;
+            }
+
+            for (const monster of fireMonsters) {
+                const data = monster.userData;
+                data.phase += delta;
+                monster.position.x = data.baseX + Math.sin(data.phase * 0.9) * 5.2;
+                monster.position.y = data.baseY + Math.sin(data.phase * 2.1) * 1.1;
+                monster.rotation.z = Math.sin(data.phase * 1.7) * 0.12;
+                data.fireTimer += delta;
+                const firing = (data.fireTimer % 3.2) > 1.65;
+                data.flame.visible = firing;
+                data.flame.scale.set(0.85 + Math.sin(data.phase * 18) * 0.12, 1, 0.85 + Math.sin(data.phase * 18) * 0.12);
+                if (firing) {
+                    const flameX = monster.position.x;
+                    const flameZ = monster.position.z + 2.1;
+                    if (Math.abs(player.position.x - flameX) < 1.65 &&
+                        Math.abs(player.position.z - flameZ) < 2.0 &&
+                        Math.abs(player.position.y - monster.position.y) < 1.8) {
+                        onPlayerDie();
+                    }
+                }
+            }
+
+            for (let plat of crumblingPlats) {
+                if (plat.userData.triggered) {
+                    plat.userData.timer += delta;
+                    plat.position.x += (Math.random() - 0.5) * 0.1;
+
+                    if (plat.userData.timer >= plat.userData.crumbleDelay) {
+                        plat.position.y -= 15 * delta;
+                        if (plat.position.y < -30) plat.visible = false;
+                    }
+                }
+            }
+
+            for (let plat of movingPlats) {
+                const prevPos = plat.position.clone();
+                plat.userData.progress += delta * plat.userData.speed;
+                const offset = Math.sin(plat.userData.progress);
+                plat.position.copy(plat.userData.startPos).addScaledVector(plat.userData.moveVector, offset);
+                plat.userData.frameDeltaPos = plat.position.clone().sub(prevPos);
+            }
+
+            if (chaseWall && player.position.z < -120 && player.position.z > -270) {
+                chaseWall.visible = true;
+                chaseWall.position.z -= 6.2 * delta;
+                if (Math.abs(player.position.z - chaseWall.position.z) < 1.5) {
+                    onPlayerDie();
+                }
+            }
+
+            if (confettiParticles.length > 0) {
+                for (let p of confettiParticles) {
+                    p.position.add(p.userData.velocity);
+                    p.userData.velocity.y -= 0.005;
+                    p.rotation.x += 0.05;
+                    p.rotation.y += 0.05;
+                }
+            }
+        }
+
+        function checkCollectibles() {
+            for (let token of tokens) {
+                if (token.visible) {
+                    token.rotation.y += 0.04;
+                    token.position.y += Math.sin(gameTime * 4 + token.userData.sampleIndex) * 0.004;
+                    if (player.position.distanceTo(token.position) < 1.6) {
+                        token.visible = false;
+                        player.tokensCollected++;
+                        const idx = token.userData.sampleIndex;
+                        unlockedSamples.add(idx);
+                        playSfx('token');
+
+                        const sampleInfo = FIELDBOOK_DATA[idx];
+                        showToast(`필드북 등록: [${sampleInfo.code}] ${sampleInfo.name}!`);
+
+                        document.getElementById('fieldbook-dot').classList.remove('hidden');
+                        document.getElementById('btn-open-fieldbook').classList.add('new-entry-badge');
+                    }
+                }
+            }
+
+            for (let cp of checkpoints) {
+                if (!cp.activated && player.position.distanceTo(cp.position) < 2.6) {
+                    cp.activated = true;
+                    cp.postMat.color.setHex(0x4e8c37);
+                    cp.postMat.emissive.setHex(0x1b4314);
+                    player.currentCheckpoint.copy(cp.position);
+                    player.currentCpIndex = cp.index;
+                    playSfx('checkpoint');
+                    showToast(`캠프 체크포인트 ${cp.index} 저장 완료!`);
+                    updateQuestTracker(cp.index);
+
+                    if (cp.index >= 8) {
+                        document.getElementById('hud-stage-badge').innerText = 'SANCTUARY';
+                        document.getElementById('hud-stage-badge').className = 'text-[11px] px-1.5 py-0.5 pixel-green-badge font-bold';
+                    } else if (cp.index >= 4) {
+                        document.getElementById('hud-stage-badge').innerText = 'SKY RUINS';
+                        document.getElementById('hud-stage-badge').className = 'text-[11px] px-1.5 py-0.5 pixel-amber-badge font-bold';
+                    }
+                }
+            }
+        }
+
+        /* ==========================================
+           GAME FLOW CONTROLLER
+        ========================================== */
+        function startGame() {
+            playerCustom.nickname = document.getElementById('custom-nickname').value.trim() || 'YVES-SCOUT';
+            document.getElementById('player-nickname-display').innerText = playerCustom.nickname;
+            createPlayerMesh();
+            restartGameCompletely();
+        }
+
+        function restartGameCompletely() {
+            gameTime = 0;
+            player.tokensCollected = 0;
+            player.currentCheckpoint.set(0, 5, 0);
+            player.currentCpIndex = 0;
+            updateQuestTracker(0);
+
+            // Reset Canyon Puzzle
+            canyonDoorState = { isOpening: false, isOpen: false };
+            if (canyonDoorMesh) canyonDoorMesh.position.set(0, 8, -64);
+            if (canyonDoorSwitch) canyonDoorSwitch.material.emissiveIntensity = 0.6;
+
+            canyonTrapState = { isTriggered: false, rotAngle: 0 };
+            if (canyonTrapFloor) {
+                canyonTrapFloor.position.set(0, 3, -90);
+                canyonTrapFloor.rotation.x = 0;
+            }
+            if (canyonTrapSwitch) canyonTrapSwitch.position.set(0, 3.6, -81);
+
+            // Reset SMA Gate
+            smaGateState = { isHeating: false, heatProgress: 0, isOpen: false };
+            if (smaGateDoor) smaGateDoor.position.set(0, 23, -162);
+            if (smaSwitchMesh) smaSwitchMesh.material.emissiveIntensity = 0.4;
+
+            for (let plat of crumblingPlats) {
+                plat.userData.triggered = false;
+                plat.userData.timer = 0;
+                plat.position.y = plat.userData.initialY;
+                plat.visible = true;
+            }
+
+            for (let cp of checkpoints) {
+                cp.activated = false;
+                cp.postMat.color.setHex(0xf59e0b);
+                cp.postMat.emissive.setHex(0x92400e);
+            }
+            for (let token of tokens) token.visible = true;
+            for (const monster of fireMonsters) {
+                monster.userData.phase = 0;
+                monster.userData.fireTimer = 0;
+                monster.position.set(monster.userData.baseX, monster.userData.baseY, -493);
+                monster.userData.flame.visible = false;
+            }
+
+            if (chaseWall) {
+                chaseWall.position.set(0, 10, -125);
+                chaseWall.visible = false;
+            }
+
+            document.getElementById('hud-stage-badge').innerText = 'FOREST 01';
+            document.getElementById('hud-stage-badge').className = 'text-[11px] px-1.5 py-0.5 pixel-green-badge font-bold';
+
+            respawnPlayer();
+            showToast("필드 채집 탐사가 시작되었습니다!");
+        }
+
+        function respawnPlayer() {
+            player.position.copy(player.currentCheckpoint);
+            player.velocity.set(0, 0, 0);
+            player.coyoteTimer = 0;
+            player.jumpBufferTimer = 0;
+            player.sprintBoostTimer = 0;
+            player.isGliding = false;
+            player.glideQueued = false;
+            player.isSliding = false;
+            player.stamina = CONFIG.maxStamina;
+            player.staminaRegenTimer = 0;
+
+            document.getElementById('menu-modal').classList.add('hidden');
+            document.getElementById('modal-content-start').classList.add('hidden');
+            document.getElementById('modal-content-die').classList.add('hidden');
+            document.getElementById('modal-content-clear').classList.add('hidden');
+
+            isGameRunning = true;
+        }
+
+        function teleportTo(targetCp) {
+            let targetPos = new THREE.Vector3(0, 5, 0);
+            if (targetCp === 'goal') {
+                targetPos.set(0, 58, -526);
+                updateQuestTracker(7);
+            } else {
+                const idx = parseInt(targetCp);
+                if (checkpoints[idx]) {
+                    targetPos.copy(checkpoints[idx].position);
+                    targetPos.y += 0.6;
+                    updateQuestTracker(idx);
+                }
+            }
+
+            player.position.copy(targetPos);
+            player.velocity.set(0, 0, 0);
+            player.isGrounded = false;
+            player.dashCooldown = 0;
+            player.dashVisualTimer = 0;
+            player.potionAnimTimer = 0;
+            player.sprintBoostTimer = 0;
+            player.wallJumpCooldown = 0;
+
+            document.getElementById('menu-modal').classList.add('hidden');
+            document.getElementById('modal-content-die').classList.add('hidden');
+            isGameRunning = true;
+
+            showToast(`[DEV] 구역 워프 완료: ${targetCp.toUpperCase()}`);
+        }
+
+        function triggerConfettiBurst() {
+            const colors = [0xfacc15, 0x4e8c37, 0xf97316, 0x38bdf8, 0xef4444];
+            for (let i = 0; i < 120; i++) {
+                const pGeo = new THREE.PlaneGeometry(0.32, 0.32);
+                const pMat = new THREE.MeshBasicMaterial({
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    side: THREE.DoubleSide
+                });
+                const particle = new THREE.Mesh(pGeo, pMat);
+                particle.position.copy(player.position).add(new THREE.Vector3(0, 2, 0));
+                particle.userData.velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.6,
+                    Math.random() * 0.5 + 0.3,
+                    (Math.random() - 0.5) * 0.6
+                );
+                scene.add(particle);
+                confettiParticles.push(particle);
+            }
+        }
+
+        function onPlayerDie() {
+            if (!isGameRunning) return;
+            isGameRunning = false;
+            playSfx('die');
+            document.getElementById('menu-modal').classList.remove('hidden');
+            document.getElementById('modal-content-die').classList.remove('hidden');
+        }
+
+        function onGameClear() {
+            if (!isGameRunning) return;
+            isGameRunning = false;
+            playSfx('clear');
+            triggerConfettiBurst();
+
+            const formattedTime = formatTime(gameTime);
+            if (!bestTime || gameTime < bestTime) {
+                bestTime = gameTime;
+            }
+
+            document.getElementById('final-time').innerText = formattedTime;
+            document.getElementById('final-tokens').innerText = `${unlockedSamples.size} / 10 종`;
+            document.getElementById('best-time').innerText = formatTime(bestTime);
+            document.getElementById('quest-progress-badge').innerText = '완료!';
+            document.getElementById('quest-progress-badge').className = 'text-[10px] pixel-green-badge px-1.5 py-0.5 font-bold';
+
+            document.getElementById('menu-modal').classList.remove('hidden');
+            document.getElementById('modal-content-clear').classList.remove('hidden');
+        }
+
+        function showToast(msg) {
+            // 반복적인 조작 안내는 화면에 띄우지 않고, 중요한 진행/위험 알림만 표시
+            const quietMessages = [
+                '도트 그래픽 모드', '칩튠 효과음',
+                '게코 벽타기 도약', '코요테 점프', '2단 점프',
+                '질풍 대시', '슬라이딩', '공중 활공',
+                '수직 급강하', '필드북 등록', '필드 채집 탐사가 시작'
+            ];
+            if (quietMessages.some(text => String(msg).includes(text))) return;
+            const toast = document.getElementById('toast-message');
+            document.getElementById('toast-text').innerText = msg;
+            toast.classList.remove('opacity-0', 'translate-y-16');
+            toast.classList.add('opacity-100', 'translate-y-16');
+
+            clearTimeout(toast.timer);
+            toast.timer = setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-16');
+                toast.classList.add('opacity-0', 'translate-y-16');
+            }, 2000);
+        }
+
+        function updateHUD() {
+            document.getElementById('timer-display').innerText = formatTime(gameTime);
+            document.getElementById('stamina-bar').style.width = `${(player.stamina / CONFIG.maxStamina) * 100}%`;
+            const speedKmH = Math.round(new THREE.Vector3(player.velocity.x, 0, player.velocity.z).length() * 3.6);
+            document.getElementById('speed-display').innerText = speedKmH;
+            document.getElementById('token-display').innerText = unlockedSamples.size;
+
+            const activeCps = checkpoints.filter(c => c.activated).length;
+            document.getElementById('checkpoint-text').innerText = `CP ${activeCps}/11`;
+        }
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            const ms = Math.floor((seconds % 1) * 100);
+            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            applyPixelResolution();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = Math.min(clock.getDelta(), 0.1);
+
+            if (isGameRunning) {
+                updatePhysics(delta);
+                updateHUD();
+            }
+
+            if (scene.userData.updateParticles) scene.userData.updateParticles(delta);
+
+            renderer.render(scene, camera);
+        }
+
+        window.onload = () => {
+            initScene();
+            setupControls();
+            animate();
+        };
+    </script>
+</body>
+</html>
